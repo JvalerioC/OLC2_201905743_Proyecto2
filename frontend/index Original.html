@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DB-Rust</title>
+  <style>
+    body {
+          background-image: url('https://img.freepik.com/vector-gratis/resumen-lineas-brillantes-fondo-blanco-gris_1017-25097.jpg?size=626&ext=jpg');
+        }
+  </style>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="lib/codemirror.css">
+  <script src="lib/codemirror.js"></script>
+
+</head>
+<style type="text/css">
+  .fileinput-button {
+      position: relative;
+      display: inline-block;
+      overflow: hidden;
+  }
+
+  .fileinput-button input{
+      position:absolute;
+      right: 0px;
+      top: 0px;
+      opacity: 0;
+      font-size: 200px;
+  }
+  .text-align-center {
+    text-align: center;
+    vertical-align: middle;
+  }
+</style>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container">
+    <a class="navbar-brand" aria-disabled="true">DB-Rust</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <span class="nav-link btn fileinput-button" type="button" onchange="cargarArchivo()"><span> Abrir Archivo</span>
+          <input id="file" type="file"></span>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" type="button" onclick="guardarArchivo()">Guardar como...</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+  </nav>
+
+<br>
+  <div class="container">
+    <h2 >Editor</h2>
+    <textarea class="form-control"  rows="18" id="editor" ></textarea>
+  </div>
+  <br>
+  <div class="container align-middle" >
+    <button type="button" class="btn btn-secondary" onclick="interpretar()">Ejecutar</button>
+    <button type="button" class="btn btn-secondary" onclick="generarRE()">Reporte Errores</button>
+    <button type="button" class="btn btn-secondary" onclick="generarTS()">Tabla de Simbolos</button>
+    <button type="button" class="btn btn-secondary" onclick="generarTF()">Reporte Funciones</button>
+    <button type="button" class="btn btn-secondary" onclick="generarTE()">Reporte Structs</button>
+    <button type="button" class="btn btn-secondary" onclick="generarDB()">Reporte DB</button>
+    <button type="button" class="btn btn-secondary" onclick="generarTDB()">Reporte Tablas en DB</button>
+  </div>
+  <br>
+  <div class="container">
+    <h5 >Terminal</h5>
+    <textarea class="form-control" rows="12" id="consola" readonly></textarea>
+  </div>
+  <br><br><br><br>
+  <script>
+    var editor = CodeMirror.fromTextArea(document.getElementById('editor'), {
+      mode: "javascript",
+      lineNumbers: true,
+    });
+  </script>
+  <script>
+    function cargarArchivo(){
+      var archivo = document.querySelector("#file").files[0]
+      if (archivo == ""){
+        console.log(" no se ha seleccionado un archivo")
+      }else{
+        var lector = new FileReader();
+        lector.onload = function(e) {
+          var texto = e.target.result;
+          editor.setValue(texto)
+        };
+        lector.readAsText(archivo)
+      }
+    }
+
+    function guardarArchivo(){
+        var texto = editor.getValue()
+        var file = new Blob([texto], {type: "text/plain;charset=utf-8"});
+        if (window.navigator.msSaveOrOpenBlob){ 
+            window.navigator.msSaveOrOpenBlob(file, "Archivo.cpt");
+        }else { 
+            var a = document.createElement("a"),
+            url = URL.createObjectURL(file);
+            a.href = url;
+            a.download = "Archivo.cpt";
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function() {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);  
+            }, 0); 
+        }
+    }
+
+    function interpretar(){
+      var texto = editor.getValue()
+      var consola = document.querySelector("#consola")
+      var objeto = {
+          'texto': texto
+      }
+      
+      fetch('http://localhost:3000/interpretar', {
+
+      method: 'POST', 
+      body: JSON.stringify(objeto), 
+      headers:{
+          'Content-Type': 'application/json'
+      }
+      }).then(res => res.json())
+      .catch(err => {
+      console.error('Error:', err)
+      console.log("hubo error inesperado")
+      })
+      .then(response =>{
+          
+        console.log(response);
+        console.log(response.message)
+        if(response.message == "Error"){
+            consola.value = response.consola
+        }else{
+            consola.value = response.consola
+            console.log(response.consola)
+            
+        }
+      }) 
+    }
+
+    function generarRE(){
+      fetch(`http://localhost:3000/errores`)
+        .then(response => response.json())
+        .catch(error => {
+            console.log(error)
+        })
+        .then(res =>{
+          if (res.message == "Vacio"){
+            alert("no hay errores a mostrar")
+          }else{
+            console.log(res.message)
+            console.log(res.consola)
+          }
+        })
+        
+    }
+
+    function generarTS(){
+      fetch(`http://localhost:3000/simbolos`)
+        .then(response => response.json())
+        .catch(error => {
+            console.log(error)
+        })
+        .then(res =>{
+          if (res.message == "Vacio"){
+            alert(" no hay variables en el ambito global")
+          }else{
+            console.log(res.message)
+            console.log(res.consola)
+          }
+        })
+        
+    }
+
+    function generarTF(){
+      fetch(`http://localhost:3000/funciones`)
+        .then(response => response.json())
+        .catch(error => {
+            console.log(error)
+        })
+        .then(res =>{
+          if (res.message == "Vacio"){
+            alert("no hay funciones globales")
+          }else{
+            console.log(res.message)
+            console.log(res.consola)
+          }
+        })
+        
+    }
+
+    function generarTE(){
+      fetch(`http://localhost:3000/structs`)
+        .then(response => response.json())
+        .catch(error => {
+            console.log(error)
+        })
+        .then(res =>{
+          if (res.message == "Vacio"){
+            alert("no hay structuras globales")
+          }else{
+            console.log(res.message)
+            console.log(res.consola)
+          }
+        })
+        
+    }
+    function generarDB(){
+      fetch(`http://localhost:3000/DB`)
+        .then(response => response.json())
+        .catch(error => {
+            console.log(error)
+        })
+        .then(res =>{
+          if (res.message == "Vacio"){
+            alert("no hay Bases de Datos")
+          }else{
+            console.log(res.message)
+            console.log(res.consola)
+          }
+        })
+        
+    }
+
+    function generarTDB(){
+      fetch(`http://localhost:3000/DBT`)
+        .then(response => response.json())
+        .catch(error => {
+            console.log(error)
+        })
+        .then(res =>{
+          if (res.message == "Vacio"){
+            alert("no hay Tablas en Bases de Datos")
+          }else{
+            console.log(res.message)
+            console.log(res.consola)
+          }
+        })
+        
+    }
+
+  </script>
+  <script src="lib/viz.js"></script> 
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js'></script>
+  <script src='https://semantic-ui.com/dist/semantic.min.js'></script>
+  <!--<script src='https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.35.0/codemirror.js'></script>-->
+  <script src='https://codemirror.net/mode/javascript/javascript.js'></script>
+</body>
+</html>
