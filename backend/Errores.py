@@ -79,7 +79,6 @@ class TablaErrores():
                     <tr>
                         <th>No.</th>
                         <th>Descripcion</th>
-                        <th>Ambito</th>
                         <th>Linea</th>
                         <th>Columna</th>
                         <th>Fecha</th>
@@ -91,7 +90,6 @@ class TablaErrores():
                 parte2+="<tr>\n";
                 parte2+="<td>"+str(conteo)+"</td>\n";
                 parte2+="<td>"+error.descripcion+"</td>\n";
-                parte2+="<td>"+error.ambito+"</td>\n";
                 parte2+="<td>"+str(error.fila)+"</td>\n";
                 parte2+="<td>"+str(error.columna)+"</td>\n";
                 parte2+="<td>"+error.fecha+"</td>\n"

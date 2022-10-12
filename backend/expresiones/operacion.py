@@ -44,14 +44,14 @@ class Operacion():
                 elif expresion.expresion.value.upper() == "FALSE":
                     resultado.valor = False
             elif expresion.expresion.type == "ID":
-                simbol = data.ts.obtener(expresion.expresion.value)
+                simbol = data.ts.obtener(expresion.expresion.value, 0)
                 if simbol == 0:
                     resultado.tipo = "error"
                     resultado.valor = "error"
                 else:
                     if simbol.capacidad != None:
                         resultado.capacidad = simbol.capacidad
-
+                    #print(simbol.tipoDato)
                     resultado.tipo = simbol.tipoDato
                     resultado.valor = simbol.valor
                     resultado.tipoS = simbol.tipoSimbolo

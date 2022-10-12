@@ -58,7 +58,17 @@ class TablaSimbolos():
                 simbolo.tamanio = tsimbolo.tamanio
 
 
-    def obtener(self, id):
+    def obtener(self, id, posicion):
+        res = 0
+        if len(self.simbolos) == 0:
+            return res
+        else:
+            for i in range(posicion, len(self.simbolos)):
+                if(self.simbolos[i].id == id):
+                    res=self.simbolos[i]
+            return res
+
+    def obtener_puntero_heap(self, id):
         res = 0
         if len(self.simbolos) == 0:
             return res
@@ -66,18 +76,17 @@ class TablaSimbolos():
             for simbolo in self.simbolos:
                 if(simbolo.id == id):
                     res=simbolo
-            return res
+            return res.posicionHeap
 
-    def obtenerTamanioSimbolo(self, id):
+    def obtener_puntero_stack(self, id, posicion):
         res = 0
-        if len(self.simbolos == 0):
+        if len(self.simbolos) == 0:
             return res
         else:
-            for simbolo in self.simbolos:
-                if(simbolo.id == id):
-                    res = simbolo.tamanio
-                    break
-            return res                      
+            for i in range(posicion, len(self.simbolos)):
+                if(self.simbolos[i].id == id):
+                    res=self.simbolos[i]
+            return res.posicionStack                     
     
     def longitud(self):
         return len(self.simbolos)

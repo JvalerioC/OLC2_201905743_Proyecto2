@@ -9,11 +9,19 @@ def tipoDato(dato):
 class Retorno():
     def __init__(self):
         self.tipo = 0
-        self.valor = 0
+        self.valor = None
         self.linea = 0
         self.columna = 0
         self.tipoS = "Variable"
         self.capacidad = None
+
+class Texp():
+    def __init__(self, direccion, codigo, linea, columna):
+        self.direccion = direccion
+        self.codigo = codigo
+        self.linea = linea
+        self.columna = columna
+        self.tipo = ""
     
 class Impresion():
     def __init__(self):
@@ -36,17 +44,16 @@ class Datos():
         self.etiqueta = 0
         self.pStack = 0
         self.pHeap = 0
-        self.encabezado = """#include <stdio.h>
-                            float stack[100000]; // Stack
-                            float heap[100000]; // Heap
-                            float P; // Puntero Stack
-                            float H; // Puntero Heap
-                            """
+        self.encabezado = "#include <stdio.h>\n"
+        self.encabezado += "float stack[100000]; // Stack\n"
+        self.encabezado += "float heap[100000]; // Heap\n"
+        self.encabezado += "float P; // Puntero Stack\n"
+        self.encabezado += "float H; // Puntero Heap\n"
     def generar_etiquetas(self):
         cadena = "\nfloat t0"
         for i in range(1,self.temporal):
-            cadena += ", t"+str(self.temporal)
-        cadena += "\n"
+            cadena += ", t"+str(i)
+        cadena += ";\n"
         return cadena
     
     def obtenerTemporal(self):
@@ -54,9 +61,17 @@ class Datos():
         self.temporal = self.temporal+1
         return "t"+str(numero)
 
+    def obtenerTemporalAnterior(self):
+        numero = self.temporal-2
+        return "t"+str(numero)
+
     def obtenerEtiqueta(self):
         numero = self.etiqueta
         self.etiqueta = self.etiqueta+1
+        return "L"+str(numero)
+
+    def obtenerEtiquetaAnterior(self):
+        numero = self.etiqueta-2
         return "L"+str(numero)
 
 

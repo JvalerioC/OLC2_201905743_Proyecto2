@@ -6,12 +6,13 @@ from traductor import *
 def procesar_instrucciones(instrucciones, data) :
     ## lista de instrucciones recolectadas
     for inst in instrucciones :
-        if isinstance(inst, Imprimir) : procesar_imprimir(inst.cadena, data)
+        if isinstance(inst, Funcion) : procesar_funcion(inst.nombre, inst.tipo, inst.parametros, inst.instrucciones, data)
+        elif isinstance(inst, Imprimir) : procesar_imprimir(inst.cadena, data)
         elif isinstance(inst, Imprimire) : procesar_imprimire(inst.cadena, inst.expresiones, data)
         elif isinstance(inst, Declaracion1) : procesar_declaracion1(inst.id, inst.expresion, data)
         elif isinstance(inst, Declaracion2) : procesar_declaracion2(inst.id, inst.tipoDato, inst.expresion, data)
-        elif isinstance(inst, DeclaracionMutable1) : procesar_declaracionM1(inst.id, inst.expresion, data)
-        elif isinstance(inst, DeclaracionMutable2) : procesar_declaracionM2(inst.id, inst.tipoDato, inst.expresion, data)
+        elif isinstance(inst, DeclaracionMutable1) : procesar_declaracion1(inst.id, inst.expresion, data)
+        elif isinstance(inst, DeclaracionMutable2) : procesar_declaracion2(inst.id, inst.tipoDato, inst.expresion, data)
         
         #elif isinstance(inst, Asignacion) : procesar_asignacion(inst.id, inst.expresion, data)
         #elif isinstance(inst, If): procesar_if(inst.condicion, inst.instrucciones, data)
@@ -21,7 +22,8 @@ def procesar_instrucciones(instrucciones, data) :
         #elif isinstance(inst, Break): procesar_break(inst.expresion, data)
         #elif isinstance(inst, Continue): procesar_continue(data)
         #elif isinstance(inst, Loop) : procesar_loop(inst.instrucciones, data)
-        
+
+        #pausa de 3 dias
         #elif isinstance(inst, DeclaracionArreglo): procesar_declaracion_arreglo(inst.nombre, inst.tamanio, inst.expresiones, data)
         #elif isinstance(inst, DeclaracionArregloM): procesar_declaracion_arreglo_mutable(inst.nombre, inst.tamanio, inst.expresiones, data)
         #elif isinstance(inst, DeclaracionArregloMST): procesar_declaracion_arreglo_mutable_st(inst.nombre, inst.expresiones, data)

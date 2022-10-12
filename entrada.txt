@@ -5,7 +5,6 @@ fn main() {
     println!("----------------------");
     
     
-    
     let bo1: bool = false;
     let bol21: bool = !bo1;
     let cad1: String = "imprimir".to_string();
@@ -29,7 +28,6 @@ fn main() {
     println!("");
     
 
-    
     let a:i64 = 100;
     let b:i64 = 100;
     let c:i64 = 7;
@@ -37,62 +35,7 @@ fn main() {
     let j:f64 = 10.0;
     let k:f64 = 10.0;
     
-    println!("");
-    println!("");
-    if a > b || b < c {
-        println!(">>>>>> Esto no debería de imprimirse");
-    }else{
-        println!(">>>>>> Esto debería de imprimirse");
-    }
     
-    
-    if a == b && j == k || 14 != c {
-        println!(">>>>>> Esto debería de imprimirse");
-    }else{
-        println!(">>>>>> Esto no debería de imprimirse");
-    }
-    
-    let val1:i64 = 5;
-    let resp:i64 = 5;
-    let mut valorVerdadero : i64 = 100;
-    
-    if((valorVerdadero == (50 + 50 + (val1 - val1))) && ! ! ! ! ! ! ! ! ! ! true) {
-        println!(">>>>>> En este lugar deberia de entrar :)");
-        valorVerdadero = 50;
-    }
-    else if (f || (valorVerdadero > 50)) && ((resp != 100) && ! ! ! ! ! f){
-        println!(">>>>>> Aca no deberia de entrar :ccc");
-        valorVerdadero = 70;
-    }
-    else{
-        println!(">>>>>> Aca no deberia de entrar :cccc");
-    }
-
-    let x1: i64 = 15;
-
-    if x1 % 2 == 0 {
-        println!(">>>>> numeroPar ingreso a if verdadero, {} es par",x1);
-    }
-    else {
-        println!(">>>>> numeroPar ingreso a if falso, {} no es par",x1);
-    }
-
-
-
-    let abs1:i64 = 7-11;
-    let abs2:f64 = 10.0;
-    let raiz1:i64 = 9;
-    let raiz2:f64 = 100.0;
-    
-    
-    println!("");
-    println!("*************PRUEBA DE NATIVAS");
-    println!(" valor de b: {}",b);
-    
-    println!(" valor absoluto1: {}",abs1.abs());
-    println!(" valor absoluto2: {}",abs2.abs());
-    println!(" valor raiz1: {}",(raiz1 as f64).sqrt());
-    println!(" valor raiz2: {}",raiz2.sqrt());
     
 }
 
