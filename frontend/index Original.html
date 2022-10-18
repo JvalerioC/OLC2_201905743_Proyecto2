@@ -40,7 +40,7 @@
 <body>
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container">
-    <a class="navbar-brand" aria-disabled="true">DB-Rust</a>
+    <a class="navbar-brand" aria-disabled="true">DB-Rust-C3D</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -68,10 +68,7 @@
     <button type="button" class="btn btn-secondary" onclick="interpretar()">Ejecutar</button>
     <button type="button" class="btn btn-secondary" onclick="generarRE()">Reporte Errores</button>
     <button type="button" class="btn btn-secondary" onclick="generarTS()">Tabla de Simbolos</button>
-    <button type="button" class="btn btn-secondary" onclick="generarTF()">Reporte Funciones</button>
-    <button type="button" class="btn btn-secondary" onclick="generarTE()">Reporte Structs</button>
-    <button type="button" class="btn btn-secondary" onclick="generarDB()">Reporte DB</button>
-    <button type="button" class="btn btn-secondary" onclick="generarTDB()">Reporte Tablas en DB</button>
+    <button type="button" class="btn btn-secondary" onclick="">Reporte DB</button>
   </div>
   <br>
   <div class="container">
@@ -186,72 +183,6 @@
         
     }
 
-    function generarTF(){
-      fetch(`http://localhost:3000/funciones`)
-        .then(response => response.json())
-        .catch(error => {
-            console.log(error)
-        })
-        .then(res =>{
-          if (res.message == "Vacio"){
-            alert("no hay funciones globales")
-          }else{
-            console.log(res.message)
-            console.log(res.consola)
-          }
-        })
-        
-    }
-
-    function generarTE(){
-      fetch(`http://localhost:3000/structs`)
-        .then(response => response.json())
-        .catch(error => {
-            console.log(error)
-        })
-        .then(res =>{
-          if (res.message == "Vacio"){
-            alert("no hay structuras globales")
-          }else{
-            console.log(res.message)
-            console.log(res.consola)
-          }
-        })
-        
-    }
-    function generarDB(){
-      fetch(`http://localhost:3000/DB`)
-        .then(response => response.json())
-        .catch(error => {
-            console.log(error)
-        })
-        .then(res =>{
-          if (res.message == "Vacio"){
-            alert("no hay Bases de Datos")
-          }else{
-            console.log(res.message)
-            console.log(res.consola)
-          }
-        })
-        
-    }
-
-    function generarTDB(){
-      fetch(`http://localhost:3000/DBT`)
-        .then(response => response.json())
-        .catch(error => {
-            console.log(error)
-        })
-        .then(res =>{
-          if (res.message == "Vacio"){
-            alert("no hay Tablas en Bases de Datos")
-          }else{
-            console.log(res.message)
-            console.log(res.consola)
-          }
-        })
-        
-    }
 
   </script>
   <script src="lib/viz.js"></script> 

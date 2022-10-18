@@ -102,6 +102,7 @@ def procesar_declaracion_arreglo_ts(nombre, tamanio, expresiones, data):
     longitud = []
     tt = tamanio_tipo(longitud, tamanio)
     simbolo_temporal = Simbolo(nombre.value, tt[1], tipo_simbolo, 1, data.ts.nombre_entorno(), False, nombre.lineno, columna, data.pStack, -1)
+    simbolo_temporal.dimensiones = tt[0]
     data.ts.ingresar(simbolo_temporal)
     data.pStack += 1
 
@@ -111,6 +112,7 @@ def procesar_declaracion_arreglo_mutable_ts(nombre, tamanio, expresiones, data):
     longitud = []
     tt = tamanio_tipo(longitud, tamanio)
     simbolo_temporal = Simbolo(nombre.value, tt[1], tipo_simbolo, 1, data.ts.nombre_entorno(), True, nombre.lineno, columna, data.pStack, -1)
+    simbolo_temporal.dimensiones = tt[0]
     data.ts.ingresar(simbolo_temporal)
     data.pStack += 1
 
@@ -118,7 +120,11 @@ def procesar_declaracion_arreglo_mutable_st_ts(nombre, expresiones, data):
     tt = calcular_tipo_array(expresiones, data)
     tipo_simbolo = "Arreglo"
     columna = find_column(data.texto, nombre.lexpos)
+    tamanio_temporal = []
+    valor = calcular_array(None, tt, expresiones[0], data)
+    tamanio = calc_dimensiones(valor, tamanio_temporal)
     simbolo_temporal = Simbolo(nombre.value, tt, tipo_simbolo, 1, data.ts.nombre_entorno(), True, nombre.lineno, columna, data.pStack, -1)
+    simbolo_temporal.dimensiones = tamanio
     data.ts.ingresar(simbolo_temporal)
     data.pStack += 1
 
@@ -126,7 +132,11 @@ def procesar_declaracion_arreglo_st_ts(nombre, expresiones, data):
     tt = calcular_tipo_array(expresiones, data)
     tipo_simbolo = "Arreglo"
     columna = find_column(data.texto, nombre.lexpos)
+    tamanio_temporal = []
+    valor = calcular_array(None, tt, expresiones[0], data)
+    tamanio = calc_dimensiones(valor, tamanio_temporal)
     simbolo_temporal = Simbolo(nombre.value, tt, tipo_simbolo, 1, data.ts.nombre_entorno(), False, nombre.lineno, columna, data.pStack, -1)
+    simbolo_temporal.dimensiones = tamanio
     data.ts.ingresar(simbolo_temporal)
     data.pStack += 1
 
@@ -240,3 +250,33 @@ def calcular_tipo_array(expresiones, data):
             temp = calcular_tipo_array(i, data)
             
         return temp
+
+def calc_dimensiones(arreglo, tamanio):
+    tamanio.append(len(arreglo))
+    for valor in arreglo:
+        if isinstance(valor, list):
+            calc_dimensiones(valor, tamanio)
+            break
+    return tamanio
+
+def calcular_array(base, tipo, expresiones, data):
+    array = []
+    if isinstance(expresiones, ExpresionInicial):
+        op = Operacion()
+        dato = op.ejecutar(expresiones, data)
+        if dato.tipo == tipo:
+            return dato.valor
+        else:
+            return "error"
+    elif expresiones == "error":
+        return "error"
+    else:
+        for i in expresiones:
+            temp = calcular_array(base, tipo, i, data)
+            if temp == "error":
+                array = "error"
+                return "error"
+            else:
+                array.append(temp)
+            
+        return array

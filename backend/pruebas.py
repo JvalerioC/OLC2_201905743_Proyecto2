@@ -15,7 +15,6 @@ for i in range(len(x)-1, -1, -1):
     print(i, x[i])'''
 tel = "aveces"
 
-a = []
+a = "Galleta"
 
-for i in range(len(tel)-1, len(tel)):
-    print(tel[i])
+print(a=="Galleta")

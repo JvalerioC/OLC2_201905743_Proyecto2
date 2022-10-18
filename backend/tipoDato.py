@@ -22,6 +22,22 @@ class Texp():
         self.linea = linea
         self.columna = columna
         self.tipo = ""
+        self.etiquetaV = None
+        self.etiquetaF = None
+    
+    def obtenerV(self):
+        tempV = self.etiquetaV.split(",")
+        tempV2 = ""
+        for temp in tempV:
+            tempV2 += temp+": "
+        return  tempV2
+
+    def obtenerF(self):
+        tempF = self.etiquetaF.split(",")
+        tempF2 = ""
+        for temp in tempF:
+            tempF2 += temp+": "
+        return  tempF2
     
 class Impresion():
     def __init__(self):
@@ -49,6 +65,15 @@ class Datos():
         self.encabezado += "float heap[100000]; // Heap\n"
         self.encabezado += "float P; // Puntero Stack\n"
         self.encabezado += "float H; // Puntero Heap\n"
+        #estos datos me serviran para llevar control del flujo
+        self.isWhile = False
+        self.isFor = False
+        self.isLoop = False
+        self.huboLlamada = False
+        self.etiquetaSalidaCiclo = None
+        self.etiquetaRegresoCiclo = None
+
+
     def generar_etiquetas(self):
         cadena = "\nfloat t0"
         for i in range(1,self.temporal):

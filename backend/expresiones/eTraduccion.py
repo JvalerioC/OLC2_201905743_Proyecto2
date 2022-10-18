@@ -20,12 +20,12 @@ class TraductorExp():
         elif isinstance(expresion, ExpresionLogica):
             exp1 = self.traducir_expresion(expresion.expresion1, data)
             exp2 = self.traducir_expresion(expresion.expresion2, data)
-            return logica(exp1, exp2, expresion.operador, exp1.linea, exp1.columna, data)
+            return t_logica(exp1, exp2, expresion.operador, exp1.linea, exp1.columna, data)
 
         elif isinstance(expresion, ExpresionRelacional):
             exp1 = self.traducir_expresion(expresion.expresion1, data)
             exp2 = self.traducir_expresion(expresion.expresion2, data)
-            return relacional(exp1, exp2, expresion.operador, exp1.linea, exp1.columna, data)
+            return t_relacional(exp1, exp2, expresion.operador, exp1.linea, exp1.columna, data)
         
         elif isinstance(expresion, ExpresionUnaria):
             exp1 = self.traducir_expresion(expresion.expresion, data)
@@ -40,15 +40,18 @@ class TraductorExp():
             if expresion.expresion.type == "TRUE" or expresion.expresion.type == "FALSE":
                 if expresion.expresion.value.upper() == "TRUE":
                     te =  Texp(str(1), "",expresion.expresion.lineno,0)
+                    te.tipo = "BOOL"
                 elif expresion.expresion.value.upper() == "FALSE":
                     te =  Texp(str(0), "",expresion.expresion.lineno,0)
+                    te.tipo = "BOOL"
             elif expresion.expresion.type == "ID":
-                simbol = data.ts.obtener(expresion.expresion.value, data.pStack)
+                simbol = data.ts.obtener(expresion.expresion.value, data.pStack, data.pHeap)
                 if simbol == 0:
+                    te = "error"
                     data.errores.insertar("la variable a acceder no existe", 0, expresion.expresion.lineno, expresion.expresion.lexpos, data.texto)
                 else:
                     te =  Texp(str(expresion.expresion.value), "",expresion.expresion.lineno,0) 
-                    puntero = data.ts.obtener_puntero_stack(expresion.expresion.value, data.pStack)
+                    puntero = data.ts.obtener_puntero_stack(expresion.expresion.value, data.pStack, data.pHeap)
                     temporal = data.obtenerTemporal()
                     te.codigo = te.codigo + "\n"
                     te.codigo = te.codigo + temporal+" = P + "+str(puntero)+";"
@@ -82,6 +85,85 @@ class TraductorExp():
                 te =  Texp(str(expresion.expresion.value), "",expresion.expresion.lineno,0)
                 te.tipo = "DECIMAL"
             return te
+
+        elif isinstance(expresion, ExpresionAbsoluto):
+            dato = self.traducir_expresion(expresion.expresion, data)
+            
+            if dato == "error":
+                data.errores.insertar("el id al que se intenta accesar no existe", "", dato.linea, dato.columna, data.texto)
+                dato = "error"
+            else:
+                if dato.tipo == "ENTERO" or dato.tipo == "DECIMAL":
+                    dato.tipo = dato.tipo
+                    etiquetaV = data.obtenerEtiqueta()
+                    etiquetaF = data.obtenerEtiqueta()
+                    cadena_temp = dato.codigo
+                    cadena_temp += "\nif("+dato.direccion+" < 0) goto "+etiquetaV+";"
+                    cadena_temp += "\n"
+                    cadena_temp += "goto "+etiquetaF+";"
+                    cadena_temp += "\n"
+                    cadena_temp += etiquetaV +": "
+                    cadena_temp += "\n"
+                    cadena_temp += dato.direccion +" = 0-"+dato.direccion +";"
+                    cadena_temp += "\n"
+                    cadena_temp += etiquetaF+": "
+                    dato.codigo = cadena_temp
+                else:
+                    data.errores.insertar("no es posible calcular el valor absoluto, la expresion no es numerica", "", dato.linea, dato.columna, data.texto)
+                    dato.tipo = "error"
+            return dato
+        '''
+        elif isinstance(expresion, ExpresionRaiz):
+            resultado = Retorno()
+            dato = self.traducir_expresion(expresion.expresion, data)
+            resultado.linea = dato.linea
+            resultado.columna = dato.columna
+            if dato.tipo == 0 or dato.tipo == "error":
+                temp_ambito = data.ts.nombre_entorno()
+                data.errores.insertar("el id al que se intenta accesar no existe", temp_ambito, dato.linea, dato.columna, data.texto)
+                resultado.tipo = "error"
+                resultado.valor = "error"
+            else: 
+                if dato.tipo == "ENTERO" or dato.tipo == "DECIMAL":
+                    resultado.tipo = "DECIMAL"
+                    resultado.valor = pow(dato.valor, 0.5)
+                else:
+                    temp_ambito = data.ts.nombre_entorno()
+                    data.errores.insertar("no es posible calcular la raiz, la expresion no es numerica", temp_ambito, dato.linea, dato.columna, data.texto)
+                    resultado.tipo = "error"
+                    resultado.valor = "error"
+            return resultado
+
+        elif isinstance(expresion, ExpresionClone):
+            resultado = Retorno()
+            resultado.linea = expresion.id.lineno
+            resultado.columna = expresion.id.lexpos
+            simbol = data.ts.obtener(expresion.id.value)
+            if simbol == 0:
+                temp_ambito = data.ts.nombre_entorno()
+                data.errores.insertar("el id al que se intenta accesar no existe", temp_ambito, expresion.id.lineno, expresion.id.lexpos, data.texto)
+                resultado.tipo = "error"
+                resultado.valor = "error"
+            else:
+                resultado.tipo = simbol.tipoDato
+                resultado.valor = simbol.valor
+            return resultado
+
+        elif isinstance(expresion, ExpresionToString):
+            resultado = Retorno()
+            dato = self.traducir_expresion(expresion.expresion, data)
+            resultado.linea = dato.linea
+            resultado.columna = dato.columna
+            if dato.tipo == 0 or dato.tipo == "error":
+                temp_ambito = data.ts.nombre_entorno()
+                data.errores.insertar("la expreson no es valida", temp_ambito, dato.linea, dato.columna, data.texto)
+                resultado.tipo = "error"
+                resultado.valor = "error"
+            else:
+                resultado.tipo = 'CADENA'
+                resultado.valor = str(dato.valor)
+            return resultado'''
+
         '''
         elif isinstance(expresion, ExpresionInstruccion):
             resultado = Retorno()
@@ -171,78 +253,9 @@ class TraductorExp():
                     data.errores.insertar("el valor del id enviado no coincide con un arreglo o vector", temp_ambito, expresion.id.lineno, expresion.id.lexpos, data.texto)
             return resultado
         
-        elif isinstance(expresion, ExpresionAbsoluto):
-            resultado = Retorno()
-            
-            dato = self.traducir_expresion(expresion.expresion, data)
-            resultado.linea = dato.linea
-            resultado.columna = dato.columna
-            if dato.tipo == 0 or dato.tipo == "error":
-                temp_ambito = data.ts.nombre_entorno()
-                data.errores.insertar("el id al que se intenta accesar no existe", temp_ambito, dato.linea, dato.columna, data.texto)
-                resultado.tipo = "error"
-                resultado.valor = "error"
-            else:
-                if dato.tipo == "ENTERO" or dato.tipo == "DECIMAL":
-                    resultado.tipo = dato.tipo
-                    resultado.valor = abs(dato.valor)
-                else:
-                    temp_ambito = data.ts.nombre_entorno()
-                    data.errores.insertar("no es posible calcular el valor absoluto, la expresion no es numerica", temp_ambito, dato.linea, dato.columna, data.texto)
-                    resultado.tipo = "error"
-                    resultado.valor = "error"
-            return resultado
-
-        elif isinstance(expresion, ExpresionClone):
-            resultado = Retorno()
-            resultado.linea = expresion.id.lineno
-            resultado.columna = expresion.id.lexpos
-            simbol = data.ts.obtener(expresion.id.value)
-            if simbol == 0:
-                temp_ambito = data.ts.nombre_entorno()
-                data.errores.insertar("el id al que se intenta accesar no existe", temp_ambito, expresion.id.lineno, expresion.id.lexpos, data.texto)
-                resultado.tipo = "error"
-                resultado.valor = "error"
-            else:
-                resultado.tipo = simbol.tipoDato
-                resultado.valor = simbol.valor
-            return resultado
-
-        elif isinstance(expresion, ExpresionRaiz):
-            resultado = Retorno()
-            dato = self.traducir_expresion(expresion.expresion, data)
-            resultado.linea = dato.linea
-            resultado.columna = dato.columna
-            if dato.tipo == 0 or dato.tipo == "error":
-                temp_ambito = data.ts.nombre_entorno()
-                data.errores.insertar("el id al que se intenta accesar no existe", temp_ambito, dato.linea, dato.columna, data.texto)
-                resultado.tipo = "error"
-                resultado.valor = "error"
-            else: 
-                if dato.tipo == "ENTERO" or dato.tipo == "DECIMAL":
-                    resultado.tipo = "DECIMAL"
-                    resultado.valor = pow(dato.valor, 0.5)
-                else:
-                    temp_ambito = data.ts.nombre_entorno()
-                    data.errores.insertar("no es posible calcular la raiz, la expresion no es numerica", temp_ambito, dato.linea, dato.columna, data.texto)
-                    resultado.tipo = "error"
-                    resultado.valor = "error"
-            return resultado
-
-        elif isinstance(expresion, ExpresionToString):
-            resultado = Retorno()
-            dato = self.traducir_expresion(expresion.expresion, data)
-            resultado.linea = dato.linea
-            resultado.columna = dato.columna
-            if dato.tipo == 0 or dato.tipo == "error":
-                temp_ambito = data.ts.nombre_entorno()
-                data.errores.insertar("la expreson no es valida", temp_ambito, dato.linea, dato.columna, data.texto)
-                resultado.tipo = "error"
-                resultado.valor = "error"
-            else:
-                resultado.tipo = 'CADENA'
-                resultado.valor = str(dato.valor)
-            return resultado
+        
+        
+        
 
         elif isinstance(expresion, ExpresionCapacity):
             resultado = Retorno()

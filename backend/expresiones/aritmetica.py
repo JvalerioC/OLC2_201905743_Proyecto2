@@ -101,14 +101,22 @@ def t_unaria(r1, op, fila, columna, data):
     te = Texp("", "", fila, columna)
 
     if op == "!":
-        temporal = data.obtenerTemporal()
-        te.direccion = temporal
-        te.codigo += r1.codigo
-        te.codigo += "\n" + temporal + " = !"+r1.direccion+";"
+        if r1.etiquetaV == None:
+
+            tempV = data.obtenerEtiqueta()
+            tempF = data.obtenerEtiqueta()
+        else:
+            tempV = r1.etiquetaF
+            tempF = r1.etiquetaV
+        te.etiquetaF = tempF
+        te.etiquetaV =  tempV
+        te.codigo = r1.codigo
+        te.tipo = "BOOL"
     elif op == "-":
         temporal = data.obtenerTemporal()
         te.direccion = temporal
         te.codigo += temporal + " = -"+r1.direccion+";"
+        te.tipo = r1.tipo
 
     return te
 
@@ -200,20 +208,17 @@ def t_aritmetica(r1, r2, op, fila, columna, data):
                 te_codigo += "\n"+temporal+" = 0;"
                 te_codigo += "\n goto "+ data.obtenerEtiqueta()
                 te_codigo += "\n"+data.obtenerEtiquetaAnterior()+":"
-                t_codigo = "\n"+ temporal +" = "+r1.direccion+" % "+r2.direccion+";"
+                t_codigo = "\n"+ temporal +" = (int)"+r1.direccion+" % "+r2.direccion+";"
                 te.codigo = r1.codigo + r2.codigo + t_codigo
                 te_codigo += "\n"+etiqueta+":"
                 te.tipo = tipo1
             else:
                 te = "error"
-                print("2")
                 data.errores.insertar("No es posible hacer operacion", "", fila, columna, data.texto)
         else:
             data.errores.insertar("No es posible hacer operacion aritmetica los tipos de datos no son iguales", "", fila, columna, data.texto)
             te = "error"
-            print("3")
     else:
-        print("1")
         data.errores.insertar("No es posible hacer operacion aritmetica con ID, CHAR, BOOL", "", fila, columna, data.texto)
         #print("no es posible hacer operacion")
         te = "error"

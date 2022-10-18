@@ -14,20 +14,20 @@ def procesar_instrucciones(instrucciones, data) :
         elif isinstance(inst, DeclaracionMutable1) : procesar_declaracion1(inst.id, inst.expresion, data)
         elif isinstance(inst, DeclaracionMutable2) : procesar_declaracion2(inst.id, inst.tipoDato, inst.expresion, data)
         
-        #elif isinstance(inst, Asignacion) : procesar_asignacion(inst.id, inst.expresion, data)
-        #elif isinstance(inst, If): procesar_if(inst.condicion, inst.instrucciones, data)
-        #elif isinstance(inst, If_Else): procesar_if_else(inst.condicion, inst.instrucciones, inst.ielse, data)
-        #elif isinstance(inst, While): procesar_while(inst.condicion, inst.instrucciones, data)
+        elif isinstance(inst, Asignacion) : procesar_asignacion(inst.id, inst.expresion, data)
+        elif isinstance(inst, If): procesar_if(inst.condicion, inst.instrucciones, data, None)
+        elif isinstance(inst, If_Else): procesar_if_else(inst.condicion, inst.instrucciones, inst.ielse, data, None)
+        elif isinstance(inst, While): procesar_while(inst.condicion, inst.instrucciones, data)
         #elif isinstance(inst, For): procesar_for(inst.variable, inst.arreglo, inst.inicio, inst.fin, inst.instrucciones, data)
-        #elif isinstance(inst, Break): procesar_break(inst.expresion, data)
-        #elif isinstance(inst, Continue): procesar_continue(data)
+        elif isinstance(inst, Break): procesar_break(inst.expresion, data)
+        elif isinstance(inst, Continue): procesar_continue(data)
         #elif isinstance(inst, Loop) : procesar_loop(inst.instrucciones, data)
 
         #pausa de 3 dias
-        #elif isinstance(inst, DeclaracionArreglo): procesar_declaracion_arreglo(inst.nombre, inst.tamanio, inst.expresiones, data)
-        #elif isinstance(inst, DeclaracionArregloM): procesar_declaracion_arreglo_mutable(inst.nombre, inst.tamanio, inst.expresiones, data)
-        #elif isinstance(inst, DeclaracionArregloMST): procesar_declaracion_arreglo_mutable_st(inst.nombre, inst.expresiones, data)
-        #elif isinstance(inst, DeclaracionArregloST): procesar_declaracion_arreglo_st(inst.nombre, inst.expresiones, data)
+        elif isinstance(inst, DeclaracionArreglo): procesar_declaracion_arreglo(inst.nombre, inst.tamanio, inst.expresiones, data)
+        elif isinstance(inst, DeclaracionArregloM): procesar_declaracion_arreglo(inst.nombre, inst.tamanio, inst.expresiones, data)
+        elif isinstance(inst, DeclaracionArregloMST): procesar_declaracion_arreglo_st(inst.nombre, inst.expresiones, data)
+        elif isinstance(inst, DeclaracionArregloST): procesar_declaracion_arreglo_st(inst.nombre, inst.expresiones, data)
         
         #elif isinstance(inst, DeclaracionVector): procesar_declaracion_vector(inst.nombre, inst.tipo, inst.valor, inst.capacidad, inst.mutable, data)
         #elif isinstance(inst, DeclaracionVector2): procesar_declaracion_vector2(inst.nombre, inst.tipo, inst.mutable, inst.capacidad, data)
@@ -36,6 +36,7 @@ def procesar_instrucciones(instrucciones, data) :
         #elif isinstance(inst, Vpush): vector_push(inst.id, inst.expresion, data)
         #elif isinstance(inst, Vremove): vector_remove(inst.id, inst.posicion, data)
         
+        #hasta auqi llego el 17
         #elif isinstance(inst, LlamadaFuncion): llamada_funcion(inst.id, inst.parametros, data)
         #elif isinstance(inst, Return): procesar_return(inst.expresion, data)
         #elif isinstance(inst, DeclaracionStruct): procesar_declaracion_struct(inst.id, inst.idStruct, inst.campos, inst.mutable, data)

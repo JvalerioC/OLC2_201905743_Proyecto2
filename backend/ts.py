@@ -18,6 +18,7 @@ class Simbolo():
         self.modulo = []
         self.valor = 0
         self.instrucciones = None
+        self.dimensiones = None
 
 class TablaSimbolos():
     def __init__(self):
@@ -44,13 +45,12 @@ class TablaSimbolos():
     def limpiar(self):
         self.simbolos = []
 
-    def modificar(self, tsimbolo):
-        res = 0
-        for simbolo in self.simbolos:
-            if(simbolo.id == tsimbolo.id):
-                simbolo.valor = tsimbolo.valor
-                res = True
-        return res
+    def modificar(self, tsimbolo, inicio, fin):
+        
+        for i in range(inicio, fin):
+            if(self.simbolos[i].id == tsimbolo.id):
+                self.simbolos[i] = tsimbolo
+        
 
     def modificar_tamanio(self, tsimbolo):
         for simbolo in self.simbolos:
@@ -58,12 +58,12 @@ class TablaSimbolos():
                 simbolo.tamanio = tsimbolo.tamanio
 
 
-    def obtener(self, id, posicion):
+    def obtener(self, id, inicio, fin):
         res = 0
         if len(self.simbolos) == 0:
             return res
         else:
-            for i in range(posicion, len(self.simbolos)):
+            for i in range(inicio, fin):
                 if(self.simbolos[i].id == id):
                     res=self.simbolos[i]
             return res
@@ -78,12 +78,12 @@ class TablaSimbolos():
                     res=simbolo
             return res.posicionHeap
 
-    def obtener_puntero_stack(self, id, posicion):
+    def obtener_puntero_stack(self, id, inicio, fin):
         res = 0
         if len(self.simbolos) == 0:
             return res
         else:
-            for i in range(posicion, len(self.simbolos)):
+            for i in range(inicio, fin):
                 if(self.simbolos[i].id == id):
                     res=self.simbolos[i]
             return res.posicionStack                     
