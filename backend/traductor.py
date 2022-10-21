@@ -117,20 +117,131 @@ def procesar_imprimire(cadena, expresiones, data):
         data.errores.insertar("la expresion a imprimir no es de tipo cadena", "", dato.linea, dato.columna, data.texto)
     
 def procesar_imprimirV(cadena, expresion, data):
-    print()
+    op = Operacion()
+    tipo_impresion = ""
+    casteo = ""
+    tamanio = 1
+    dato = op.ejecutar(cadena, data)
+    if dato.tipo == "CADENA" and "{:?}" in dato.valor:
+        temp = op.ejecutar(expresion, data)
+        print(temp.tipoS)
+        if temp.tipoS == "Arreglo":
+            simbol = data.ts.obtener(expresion.id.value, 0, len(data.ts.simbolos))
+            if simbol.tipoDato == "CADENA":
+                print("hay que imprimir una cadena")
+            else:
+                if simbol.tipoDato == "CARACTER":
+                    tipo_impresion = 'c'
+                    casteo = "(int)"
+                elif simbol.tipoDato == "ENTERO":
+                    tipo_impresion = "d"
+                    casteo = "(int)"
+                elif simbol.tipoDato == "DECIMAL":
+                    tipo_impresion = "f"
+                    casteo = ""
+                tr = TraductorExp()
+                traductor = tr.traducir_expresion(expresion, data)
+                if traductor == "error":
+                    return
+                if traductor.dimension == None:
+                    
+                    cadena_temporal = traductor.codigo
+                    cadena_temporal += "\n"
+                    
+                    etiqueta1 = data.obtenerEtiqueta()
+                    etiqueta2 = data.obtenerEtiqueta()
+
+                    temporal1 = traductor.direccion
+                    temporal2 = data.obtenerTemporal()
+                    temporal3 = data.obtenerTemporal()
+                    cadena_temporal += temporal2+" = "
+                    cadena_temporal += f"heap[(int){temporal1}];"
+                    cadena_temporal += "\n"
+                    cadena_temporal += temporal3+" = 0;"
+                    cadena_temporal += "\n"
+                    cadena_temporal += temporal1+" = "+temporal1+" + 1;"
+                    cadena_temporal += "\n"
+                    cadena_temporal += temporal2+" = "+temporal2+" + "+temporal1+";"
+                    cadena_temporal += "\n"
+                    cadena_temporal += temporal3+" = "+temporal3+" + "+temporal1+";"
+                    cadena_temporal += "\n"
+                    cadena_temporal += "printf(\"%c\", 91); "
+
+                    #aqui va el if
+                    cadena_temporal += etiqueta1+":\n"
+                    cadena_temporal += "if("+temporal2+"=="+temporal3+") goto "+etiqueta2+";\n"
+                    cadena_temporal += temporal1+" = heap[(int)"+temporal3+"];\n"
+                    cadena_temporal += f"printf(\"%{tipo_impresion}\", {casteo}{temporal1}); "
+                    cadena_temporal += "\n"
+                    cadena_temporal += "printf(\"%c\", 44);\n"
+                    cadena_temporal += temporal3+" = "+temporal3+" + 1;\n"
+                    cadena_temporal += "goto "+etiqueta1+";\n"
+                    cadena_temporal += etiqueta2+":"
+                    cadena_temporal += "\n"
+                    cadena_temporal += "printf(\"%c\", 93); "
+                    cadena_temporal += "\n"
+                    cadena_temporal += "printf(\"%c\", 10);"
+                    data.consola.concatenar(cadena_temporal)
+                else:
+                    etiqueta1 = data.obtenerEtiqueta()
+                    etiqueta2 = data.obtenerEtiqueta()
+
+                    cadena_temporal = traductor.codigo
+                    temporal1 = traductor.direccion
+                    temporal2 = data.obtenerTemporal()
+                    temporal3 = data.obtenerTemporal()
+                    
+                    cadena_temporal += "\n"
+                    cadena_temporal += temporal3+" = 0;"
+                    cadena_temporal += "\n"
+                    cadena_temporal += temporal2+" = "+str(traductor.dimension)+" + "+temporal1+";"
+                    cadena_temporal += "\n"
+                    cadena_temporal += temporal3+" = "+temporal3+" + "+temporal1+";"
+                    cadena_temporal += "\n"
+                    cadena_temporal += "printf(\"%c\", 91); "
+
+                    #aqui va el if
+                    cadena_temporal += etiqueta1+":\n"
+                    cadena_temporal += "if("+temporal2+"=="+temporal3+") goto "+etiqueta2+";\n"
+                    cadena_temporal += temporal1+" = heap[(int)"+temporal3+"];\n"
+                    cadena_temporal += f"printf(\"%{tipo_impresion}\", {casteo}{temporal1}); "
+                    cadena_temporal += "\n"
+                    cadena_temporal += "printf(\"%c\", 44);\n"
+                    cadena_temporal += temporal3+" = "+temporal3+" + 1;\n"
+                    cadena_temporal += "goto "+etiqueta1+";\n"
+                    cadena_temporal += etiqueta2+":"
+                    cadena_temporal += "\n"
+                    cadena_temporal += "printf(\"%c\", 93); "
+                    cadena_temporal += "\n"
+                    cadena_temporal += "printf(\"%c\", 10);"
+                    data.consola.concatenar(cadena_temporal)
+
+
+        else:
+            data.errores.insertar("se esperaba un vector, no se puede imprimir", "", dato.linea, dato.columna, data.texto)
+        
+    else:
+        data.errores.insertar("la cadena no incluye la opcion de imprimir arreglo, o la expresion no es de tipo CADENA", "", dato.linea, dato.columna, data.texto)
+
+
 
 def procesar_declaracion1(id, expresion, data):
     op = Operacion()
     dato = op.ejecutar(expresion, data)
     if dato.tipo == "CADENA":
         puntero = data.ts.obtener_puntero_stack(id.value, data.pStack, data.pHeap)
-        temporal = data.obtenerTemporal()
         data.consola.concatenar("\n")
-        data.consola.concatenar(temporal+ " = H;")
+        data.consola.concatenar("stack["+str(puntero)+"] = H;")
         data.consola.concatenar("\n")
-        data.consola.concatenar("stack["+str(puntero)+"] = "+temporal+";")
-        tr = TraductorExp()
-        tr.traducir_expresion(expresion, data)
+        data.consola.concatenar("heap[(int)H] = "+ str(len(expresion.expresion.value))+";")
+        data.consola.concatenar("\n")
+        data.consola.concatenar("H = H + 1;")
+        for caracter in expresion.expresion.value:
+            ascii_char = str(ord(caracter))
+            data.consola.concatenar("\n")
+            data.consola.concatenar("heap[(int)H] = "+ ascii_char+";")
+            data.consola.concatenar("\n")
+            data.consola.concatenar("H = H + 1;")
     else:
         #aqui traduzco la expresion
         tr = TraductorExp()
@@ -158,13 +269,18 @@ def procesar_declaracion2(id, tipo, expresion, data):
     if dato.tipo == tipoDato(tipo.value):
         if dato.tipo == "CADENA":
             puntero = data.ts.obtener_puntero_stack(id.value, data.pStack, data.pHeap)
-            temporal = data.obtenerTemporal()
             data.consola.concatenar("\n")
-            data.consola.concatenar(temporal+ " = H;")
+            data.consola.concatenar("stack["+str(puntero)+"] = H;")
             data.consola.concatenar("\n")
-            data.consola.concatenar("stack["+str(puntero)+"] = "+temporal+";")
-            tr = TraductorExp()
-            tr.traducir_expresion(expresion, data)
+            data.consola.concatenar("heap[(int)H] = "+ str(len(expresion.expresion.value))+";")
+            data.consola.concatenar("\n")
+            data.consola.concatenar("H = H + 1;")
+            for caracter in expresion.expresion.value:
+                ascii_char = str(ord(caracter))
+                data.consola.concatenar("\n")
+                data.consola.concatenar("heap[(int)H] = "+ ascii_char+";")
+                data.consola.concatenar("\n")
+                data.consola.concatenar("H = H + 1;")
         else:
             #aqui traduzco la expresion
             tr = TraductorExp()
@@ -510,8 +626,53 @@ def procesar_declaracion_arreglo(nombre, tamanio, expresiones, data):
     if valor == "error" or tt[1] != temp.tipoDato:
         data.errores.insertar("Hubo un error en la declaracion de la variable", "", nombre.lineno, nombre.lexpos, data.texto)
     else:
-        print(temp.dimensiones, temp.tipoDato)
-        print(valor)
+        dimension = 1
+        for dato in temp.dimensiones:
+            dimension = dimension*dato
+        cadena_temp = "\n"
+        cadena_temp += f"stack[(int){temp.posicionStack}] = H;"
+        cadena_temp += "\n"
+        cadena_temp += "heap[(int)H] = "+str(dimension)+";"
+        cadena_temp += "\n"
+        cadena_temp += "H = H + 1;"
+        if temp.tipoDato == "CARACTER":
+            for dato  in valor:
+                cadena_temp += "\n"
+                ascii_char = str(ord(dato.value))
+                cadena_temp += "heap[(int)H] = "+str(ascii_char)+";"
+                cadena_temp += "\n"
+                cadena_temp += "H = H + 1;"
+
+        elif temp.tipoDato == "CADENA":
+            tamanio_agregado = dimension
+            for dato in valor:
+                cadena_temp += "\n"
+                tem = data.obtenerTemporal()
+                cadena_temp += tem+" = H + "+str(tamanio_agregado)+";\n"
+                cadena_temp += f"heap[(int)H] = {tem};"
+                tamanio_agregado = tamanio_agregado + len(dato)
+                cadena_temp += "\n"
+                cadena_temp += "H = H + 1;"
+            for dato in valor:
+                cadena_temp += "\n"
+                cadena_temp += "heap[(int)H] = "+str(len(dato))+";"
+                cadena_temp += "\n"
+                cadena_temp += "H = H + 1;"
+                for caracter in dato:
+                    cadena_temp += "\n"
+                    ascii_char = str(ord(caracter))
+                    cadena_temp += "heap[(int)H] = "+ascii_char+";"
+                    cadena_temp += "\n"
+                    cadena_temp += "H = H + 1;"
+            
+
+        else:
+            for dato in valor:
+                cadena_temp += "\n"
+                cadena_temp += "heap[(int)H] = "+str(dato)+";"
+                cadena_temp += "\n"
+                cadena_temp += "H = H + 1;"
+        data.consola.concatenar(cadena_temp)
 
 def procesar_declaracion_arreglo_st(nombre, expresiones, data):
     temp = data.ts.obtener(nombre.value, data.pStack, data.pHeap)
@@ -521,9 +682,148 @@ def procesar_declaracion_arreglo_st(nombre, expresiones, data):
     if valor == "error" or tt != temp.tipoDato:
         data.errores.insertar("Hubo un error en la declaracion de la variable", "", nombre.lineno, nombre.lexpos, data.texto)
     else:
-        print(temp.dimensiones, temp.tipoDato)
-        print(valor)
+        dimension = 1
+        for dato in temp.dimensiones:
+            dimension = dimension*dato
+        cadena_temp = "\n"
+        cadena_temp += f"stack[(int){temp.posicionStack}] = H;"
+        cadena_temp += "\n"
+        cadena_temp += "heap[(int)H] = "+str(dimension)+";"
+        cadena_temp += "\n"
+        cadena_temp += "H = H + 1;"
+        if temp.tipoDato == "CARACTER":
+            for dato  in valor:
+                cadena_temp += "\n"
+                ascii_char = str(ord(dato.value))
+                cadena_temp += "heap[(int)H] = "+str(ascii_char)+";"
+                cadena_temp += "\n"
+                cadena_temp += "H = H + 1;"
 
+        elif temp.tipoDato == "CADENA":
+            tamanio_agregado = dimension
+            for dato in valor:
+                cadena_temp += "\n"
+                tem = data.obtenerTemporal()
+                cadena_temp += tem+" = H + "+str(tamanio_agregado)+";\n"
+                cadena_temp += f"heap[(int)H] = {tem};"
+                tamanio_agregado = tamanio_agregado + len(dato)
+                cadena_temp += "\n"
+                cadena_temp += "H = H + 1;"
+            for dato in valor:
+                cadena_temp += "\n"
+                cadena_temp += "heap[(int)H] = "+str(len(dato))+";"
+                cadena_temp += "\n"
+                cadena_temp += "H = H + 1;"
+                for caracter in dato:
+                    cadena_temp += "\n"
+                    ascii_char = str(ord(caracter))
+                    cadena_temp += "heap[(int)H] = "+ascii_char+";"
+                    cadena_temp += "\n"
+                    cadena_temp += "H = H + 1;"
+            
+
+        else:
+            for dato in valor:
+                cadena_temp += "\n"
+                cadena_temp += "heap[(int)H] = "+str(dato)+";"
+                cadena_temp += "\n"
+                cadena_temp += "H = H + 1;"
+        data.consola.concatenar(cadena_temp)
+
+def procesar_modificar_arreglo(acceso, expresion, data):
+    op = Operacion()
+    id = acceso[0].value
+    a = acceso[1]
+    simbol = data.ts.obtener(id, 0, len(data.ts.simbolos))
+    if simbol == 0:
+        data.errores.insertar("el vector o arreglo a modificar no existe no existe", "", acceso[0].lineno, acceso[0].lexpos, data.texto)
+    else:
+        if simbol.mutable == True:
+            if simbol.tipoSimbolo == "Arreglo":
+                dato = op.ejecutar(expresion, data)
+                if(dato.tipo == simbol.tipoDato):
+                    tr = TraductorExp()
+                    traduccion = tr.traducir_expresion(expresion, data)
+                    if traduccion == "error":
+                        return
+                    temp = accesov(a, simbol.dimensiones, data)
+                    if temp == "error":
+                        print("aqui hay que hacer la comprobacion dinamica")
+                        return
+                    if dato.tipo == "CADENA":
+                        print("arreglo tipo cadena")
+                    else:
+                        cadena_temporal = '\n'
+                        cadena_temporal += traduccion.codigo
+                        puntero = simbol.posicionStack
+                        cadena_temporal += '\n'
+                        temporal = data.obtenerTemporal()
+                        cadena_temporal += temporal +" = stack[(int)"+str(puntero)+"];"
+                        cadena_temporal += '\n'
+                        cadena_temporal += temporal+" = "+temporal+" + "+str(temp+1)+";"
+                        cadena_temporal += '\n'
+                        cadena_temporal += f"heap[(int){temporal}] = {traduccion.direccion};"
+                        cadena_temporal += '\n'
+                        data.consola.concatenar(cadena_temporal)
+                        #print(a, simbol.dimensiones, temp)
+                        #data.ambito.modificarSimbolo(simbol, data.ambito.longitud()-1)
+                else:
+                    data.errores.insertar("El tipo de la variable no coincide con el tipo de la expresion a asignar", "", acceso[0].lineno, acceso[0].lexpos, data.texto)
+            else:
+                data.errores.insertar("La variable no es de tipo Arreglo", "", acceso[0].lineno, acceso[0].lexpos, data.texto)
+        else:
+            data.errores.insertar("el vector o arreglo no se puede modificar, no es mutable", "", acceso[0].lineno, acceso[0].lexpos, data.texto)
+
+def accesov(acceso, dimensiones, data): #este retorna la posicion (row major) del arreglo siempre y cuando cumpla con las dimensiones
+    hubo_error = False
+    op = Operacion()
+    posicion = 1
+    value = []
+    if len(acceso) == 1:
+        dato = op.ejecutar(acceso[0], data)
+        if dato.tipo == "ENTERO":
+            if dato.valor < dimensiones[0] and dato.valor > -1:
+                posicion = dato.valor
+            else:
+                posicion = "error"
+        else:
+            data.errores.insertar("no se utilizo un entero para el acceso al arreglo", "", acceso[0].lineno, acceso[0].lexpos, data.texto)
+    elif len(acceso) == 2:
+        for i in range(len(acceso)):
+            dato = op.ejecutar(acceso[i], data)
+            if dato.tipo == "ENTERO":
+                if dato.valor < dimensiones[i]:
+                    hubo_error = False
+                    value.append(dato.valor)
+                else:
+                    hubo_error = True
+                    break
+            else:
+                data.errores.insertar("no se utilizo un entero para el acceso al arreglo", "", acceso[0].lineno, acceso[0].lexpos, data.texto)
+        if hubo_error != True:
+            posicion = dimensiones[1]*value[0]+value[1]
+        else:
+            posicion = "error"
+
+
+    elif len(acceso) == 3:
+        for i in range(len(acceso)):
+            dato = op.ejecutar(acceso[i], data)
+            if dato.tipo == "ENTERO":
+                if dato.valor < dimensiones[i]:
+                    hubo_error = False
+                    value.append(dato.valor)
+                else:
+                    hubo_error = True
+                    break
+            else:
+                data.errores.insertar("no se utilizo un entero para el acceso al arreglo", "", acceso[0].lineno, acceso[0].lexpos, data.texto)
+        if hubo_error != True:
+            posicion = dimensiones[2]*dimensiones[1]*value[0]
+            posicion += dimensiones[2]*value[1]+value[2]
+        else:
+            posicion = "error"
+    return posicion
 
 
 

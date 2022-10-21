@@ -3,7 +3,7 @@ from expresiones.expresiones import *
 from expresiones.aritmetica import *
 from expresiones.logica import *
 from expresiones.relacional import *
-
+from expresiones.operacion import Operacion
 
 
 class TraductorExp():
@@ -62,17 +62,7 @@ class TraductorExp():
                     te.tipo = simbol.tipoDato
                                
             elif expresion.expresion.type == "CADENA":
-                temporal = data.obtenerTemporal()
-                data.consola.concatenar("\n")
-                data.consola.concatenar("heap[(int)H] = "+ str(len(expresion.expresion.value))+";")
-                data.consola.concatenar("\n")
-                data.consola.concatenar("H = H + 1;")
-                for caracter in expresion.expresion.value:
-                    ascii_char = str(ord(caracter))
-                    data.consola.concatenar("\n")
-                    data.consola.concatenar("heap[(int)H] = "+ ascii_char+";")
-                    data.consola.concatenar("\n")
-                    data.consola.concatenar("H = H + 1;")
+                print("si deberia haber expresion cadena")
                 return
                 
             elif expresion.expresion.type == "CARACTER":
@@ -112,6 +102,64 @@ class TraductorExp():
                     data.errores.insertar("no es posible calcular el valor absoluto, la expresion no es numerica", "", dato.linea, dato.columna, data.texto)
                     dato.tipo = "error"
             return dato
+
+        elif isinstance(expresion, ExpresionAcceso): 
+            te = Texp("","", expresion.id.lineno, 0)
+            error_comprobacion = False
+            simbol = data.ts.obtener(expresion.id.value, 0, len(data.ts.simbolos))
+            if simbol == 0:
+                    te = "error"
+                    data.errores.insertar("el id al que se intenta accesar no existe", "", expresion.id.lineno, expresion.id.lexpos, data.texto)
+            else:
+                if simbol.tipoSimbolo == "Arreglo" or simbol.tipoSimbolo == "Vector":
+                    
+                    if len(simbol.dimensiones) == len(expresion.acceso):
+                        te.tipo = simbol.tipoDato
+                        posicion = acceso_posicion(expresion.acceso,simbol.dimensiones, data)
+                        if posicion == "error":
+                            error_comprobacion = True
+                        temporal = data.obtenerTemporal()
+                        cadena_temp = "\n"
+                        te.direccion = temporal
+                        traductor = self.traducir_expresion(ExpresionInicial(expresion.id), data)
+                        cadena_temp += traductor.codigo
+                        cadena_temp += "\n"
+                        cadena_temp += traductor.direccion+" = "+traductor.direccion+" + 1;"
+                        cadena_temp += "\n"
+                        cadena_temp += traductor.direccion+" = "+traductor.direccion+" + "+str(posicion)+";"
+                        cadena_temp += "\n"
+                        cadena_temp += temporal+" = heap[(int)"+traductor.direccion+"];"
+                        te.codigo = cadena_temp
+                    #este de aqui solo aplica para la impresion
+                    elif len(simbol.dimensiones) > len(expresion.acceso):
+                        te.tipo = simbol.tipoDato
+                        te.tipoS = "Arreglo"
+                        from tipoDato import ParaLex
+                        a = ParaLex()
+                        a.value = 0
+                        a.type = "ENTERO"
+                        expresion.acceso.append(ExpresionInicial(a))
+                        posicion = acceso_posicion(expresion.acceso,simbol.dimensiones, data)
+                        if posicion == "error":
+                            error_comprobacion = True
+                        cadena_temp = "\n"
+                        traductor = self.traducir_expresion(ExpresionInicial(expresion.id), data)
+                        cadena_temp += traductor.codigo
+                        cadena_temp += "\n"
+                        cadena_temp += traductor.direccion+" = "+traductor.direccion+" + 1;"
+                        cadena_temp += "\n"
+                        cadena_temp += traductor.direccion+" = "+traductor.direccion+" + "+str(posicion)+";"
+                        te.codigo = cadena_temp
+                        te.direccion = traductor.direccion
+                        te.dimension = simbol.dimensiones[len(simbol.dimensiones)-1]
+                    
+                else:
+                    te = "error"
+                    data.errores.insertar("el valor del id enviado no coincide con un arreglo o vector", "", expresion.id.lineno, expresion.id.lexpos, data.texto)
+            if error_comprobacion:
+                te = "error"
+                print("hay que hacer la comprobacion")
+            return te
         '''
         elif isinstance(expresion, ExpresionRaiz):
             resultado = Retorno()
@@ -173,36 +221,7 @@ class TraductorExp():
             else: print("la expresion instruccion a buscar no es valida")
             return resultado
         
-        elif isinstance(expresion, ExpresionAcceso): 
-            resultado = Retorno()
-            simbol = data.ts.obtener(expresion.id.value)
-            if simbol == 0:
-                    resultado.tipo = "error"
-                    resultado.valor = "error"
-                    temp_ambito = data.ts.nombre_entorno()
-                    data.errores.insertar("el id al que se intenta accesar no existe", temp_ambito, expresion.id.lineno, expresion.id.lexpos, data.texto)
-            else:
-                if simbol.tipoSimbolo == "Arreglo" or simbol.tipoSimbolo == "Vector":
-                    try:
-                        temp1 = simbol.valor
-                        for i in expresion.acceso:
-                            dato = self.traducir_expresion(i, data)
-                            if dato.tipo == "ENTERO":
-                                temp1 = temp1[dato.valor]
-                            
-                        resultado.valor = temp1
-                        resultado.tipo = simbol.tipoDato
-                    except:
-                        resultado.tipo = "error"
-                        resultado.valor = "error"
-                        temp_ambito = data.ts.nombre_entorno()
-                        data.errores.insertar("No es posible acceder a esta posicion del vector", temp_ambito, expresion.id.lineno, expresion.id.lexpos, data.texto)
-                else:
-                    resultado.tipo = "error"
-                    resultado.valor = "error"
-                    temp_ambito = data.ts.nombre_entorno()
-                    data.errores.insertar("el valor del id enviado no coincide con un arreglo o vector", temp_ambito, expresion.id.lineno, expresion.id.lexpos, data.texto)
-            return resultado
+        
 
         elif isinstance(expresion, ExpresionRemove):
             resultado = Retorno()
@@ -349,4 +368,54 @@ class TraductorExp():
         else:
             print(expresion, "error expresion desconocida")'''
 
-        
+def acceso_posicion(acceso, dimensiones, data): #este retorna la posicion (row major) del arreglo siempre y cuando cumpla con las dimensiones
+    hubo_error = False
+    op = Operacion()
+    posicion = 1
+    value = []
+    if len(acceso) == 1:
+        dato = op.ejecutar(acceso[0], data)
+        if dato.tipo == "ENTERO":
+            if dato.valor < dimensiones[0] and dato.valor > -1:
+                posicion = dato.valor
+            else:
+                posicion = "error"
+        else:
+            data.errores.insertar("no se utilizo un entero para el acceso al arreglo", "", acceso[0].lineno, acceso[0].lexpos, data.texto)
+    elif len(acceso) == 2:
+        for i in range(len(acceso)):
+            dato = op.ejecutar(acceso[i], data)
+            if dato.tipo == "ENTERO":
+                if dato.valor < dimensiones[i]:
+                    hubo_error = False
+                    value.append(dato.valor)
+                else:
+                    hubo_error = True
+                    break
+            else:
+                data.errores.insertar("no se utilizo un entero para el acceso al arreglo", "", acceso[0].lineno, acceso[0].lexpos, data.texto)
+        if hubo_error != True:
+            posicion = dimensiones[1]*value[0]+value[1]
+        else:
+            posicion = "error"
+
+
+    elif len(acceso) == 3:
+        for i in range(len(acceso)):
+            dato = op.ejecutar(acceso[i], data)
+            if dato.tipo == "ENTERO":
+                if dato.valor < dimensiones[i]:
+                    hubo_error = False
+                    value.append(dato.valor)
+                else:
+                    hubo_error = True
+                    break
+            else:
+                data.errores.insertar("no se utilizo un entero para el acceso al arreglo", "", acceso[0].lineno, acceso[0].lexpos, data.texto)
+        if hubo_error != True:
+            posicion = dimensiones[2]*dimensiones[1]*value[0]
+            posicion += dimensiones[2]*value[1]+value[2]
+        else:
+            posicion = "error"
+    return posicion
+

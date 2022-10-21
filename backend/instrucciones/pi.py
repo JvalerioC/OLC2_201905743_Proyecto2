@@ -1,21 +1,4 @@
 
-def procesar_imprimirV(cadena, expresion, data):
-    op = Operacion()
-    dato = op.ejecutar(cadena, data)
-    if dato.tipo == "CADENA" and "{:?}" in dato.valor:
-        temp = op.ejecutar(expresion, data)
-        if isinstance(temp.valor, list):
-            data.consola.concatenar("> ")
-            data.consola.concatenar(str(temp.valor))
-            data.consola.concatenar("\n")
-        else:
-            temp_ambito = data.ambito.pila[len(data.ambito.pila)-1].nombre
-            data.errores.insertar("se esperaba un vector, no se puede imprimir", temp_ambito, dato.linea, dato.columna, data.texto)
-        
-    else:
-        temp_ambito = data.ambito.pila[len(data.ambito.pila)-1].nombre
-        data.errores.insertar("la cadena no incluye la opcion de imprimir arreglo, o la expresion no es de tipo CADENA", temp_ambito, dato.linea, dato.columna, data.texto)
-
 def procesar_for(variable, arreglo, inicio, fin, instrucciones, data):
     
     arreglo_temporal = 0
@@ -107,89 +90,15 @@ def procesar_expresion(expresion, data):
     resultado = op.ejecutar(expresion, data)
     data.ambito.pila[data.ambito.longitud()-1].retorno = resultado
 
-def tipoD(dato):
-    if dato == "i64": return "ENTERO"
-    if dato == "f64": return "DECIMAL"
-    if dato == "bool": return "BOOL"
-    if dato == "char": return 'CARACTER'
-    if dato == "String": return "CADENA"
-    if dato == "&str" : return "CADENA"
-
-
-def procesar_declaracion_arreglo_mutable_st(nombre, expresiones, data):
-    temp = data.ambito.pila[data.ambito.longitud()-1].obtener(nombre.value)
-    if temp == 0:
-        valor = []
-        tt = calcular_tipo_array(expresiones, data)
-        valor = calcular_array(None, tt, expresiones[0], data)
-        if valor == "error":
-            temp_ambito = data.ambito.pila[len(data.ambito.pila)-1].nombre
-            data.errores.insertar("Hubo un error en la declaracion de la variable", temp_ambito, nombre.lineno, nombre.lexpos, data.texto)
-        else:
-            temp_ambito = data.ambito.pila[len(data.ambito.pila)-1].nombre
-            data.ambito.ingresarSimbolo(nombre.value, valor, "Arreglo", tt, temp_ambito, True, nombre.lineno, nombre.lexpos, data.texto)
+    temp = accesov(a, simbol.valor, dato.valor, data)
+    if temp == "error":
+        print("es a este al que no entra")
+        data.errores.insertar("No es posible acceder a esta posicion del vector", "", acceso[0].lineno, acceso[0].lexpos, data.texto)
     else:
-        temp_ambito = data.ambito.pila[len(data.ambito.pila)-1].nombre
-        data.errores.insertar("La variable ya existe, no se puede declarar", temp_ambito, nombre.lineno, nombre.lexpos, data.texto)
+        simbol.valor = temp
+        data.ambito.modificarSimbolo(simbol, data.ambito.longitud()-1)
 
-def procesar_declaracion_arreglo_st(nombre, expresiones, data):
-    temp = data.ambito.pila[data.ambito.longitud()-1].obtener(nombre.value)
-    if temp == 0:
-        valor = []
-        tt = calcular_tipo_array(expresiones, data)
-        valor = calcular_array(None, tt, expresiones[0], data)
-        if valor == "error":
-            temp_ambito = data.ambito.pila[len(data.ambito.pila)-1].nombre
-            data.errores.insertar("Hubo un error en la declaracion de la variable", temp_ambito, nombre.lineno, nombre.lexpos, data.texto)
-        else:
-            temp_ambito = data.ambito.pila[len(data.ambito.pila)-1].nombre
-            data.ambito.ingresarSimbolo(nombre.value, valor, "Arreglo", tt, temp_ambito, False, nombre.lineno, nombre.lexpos, data.texto)
-    else:
-        temp_ambito = data.ambito.pila[len(data.ambito.pila)-1].nombre
-        data.errores.insertar("La variable ya existe, no se puede declarar", temp_ambito, nombre.lineno, nombre.lexpos, data.texto)
 
-def tamanio_tipo(longitud, tt):
-    longitud.append(tt.tamanio.value)
-    if isinstance(tt.tipo, TamanioTipo):
-        return tamanio_tipo(longitud, tt.tipo)
-    else:
-        temp = []
-        temp.append(longitud)
-        temp.append(tipoD(tt.tipo.value))
-        return temp
-
-def calcular_tipo_array(expresiones, data):
-    if isinstance(expresiones, ExpresionInicial):
-        op = Operacion()
-        dato = op.ejecutar(expresiones, data)
-        return dato.tipo
-    else:
-        for i in expresiones:
-            temp = calcular_tipo_array(i, data)
-            
-        return temp
-
-def calcular_array(base, tipo, expresiones, data):
-    array = []
-    if isinstance(expresiones, ExpresionInicial):
-        op = Operacion()
-        dato = op.ejecutar(expresiones, data)
-        if dato.tipo == tipo:
-            return dato.valor
-        else:
-            return "error"
-    elif expresiones == "error":
-        return "error"
-    else:
-        for i in expresiones:
-            temp = calcular_array(base, tipo, i, data)
-            if temp == "error":
-                array = "error"
-                return "error"
-            else:
-                array.append(temp)
-            
-        return array
 
 def procesar_declaracion_vector(nombre, tipo, valor, capacidad, mutable, data):
     is_vector = False
@@ -267,61 +176,6 @@ def procesar_declaracion_vector2(nombre, tipo, mutable, capacidad, data):
         else:
             temp_ambito = data.ambito.pila[len(data.ambito.pila)-1].nombre
             data.errores.insertar("La variable ya existe, no se puede declarar", temp_ambito, nombre.lineno, nombre.lexpos, data.texto)
-
-def procesar_modificar_arreglo(acceso, expresion, data):
-    op = Operacion()
-    id = acceso[0].value
-    a = acceso[1]
-    simbol = data.ambito.obtenerSimbolo(id, data.ambito.longitud()-1)
-    if simbol == 0:
-        temp_ambito = data.ambito.pila[len(data.ambito.pila)-1].nombre
-        data.errores.insertar("el vector o arreglo a modificar no existe no existe", temp_ambito, acceso[0].lineno, acceso[0].lexpos, data.texto)
-    else:
-        if simbol.mutable == True:
-            if simbol.tipoSimbolo == "Arreglo":
-                dato = op.ejecutar(expresion, data)
-                if(dato.tipo == simbol.tipoDato):
-                    temp = accesov(a, simbol.valor, dato.valor, data)
-                    if temp == "error":
-                        print("es a este al que no entra")
-                        temp_ambito = data.ambito.pila[len(data.ambito.pila)-1].nombre
-                        data.errores.insertar("No es posible acceder a esta posicion del vector", temp_ambito, acceso[0].lineno, acceso[0].lexpos, data.texto)
-                    else:
-                        simbol.valor = temp
-                        data.ambito.modificarSimbolo(simbol, data.ambito.longitud()-1)
-                else:
-                    temp_ambito = data.ambito.pila[len(data.ambito.pila)-1].nombre
-                    data.errores.insertar("El tipo de la variable no coincide con el tipo de la expresion a asignar", temp_ambito, acceso[0].lineno, acceso[0].lexpos, data.texto)
-            else:
-                temp_ambito = data.ambito.pila[len(data.ambito.pila)-1].nombre
-                data.errores.insertar("La variable no es de tipo Arreglo", temp_ambito, acceso[0].lineno, acceso[0].lexpos, data.texto)
-        else:
-            temp_ambito = data.ambito.pila[len(data.ambito.pila)-1].nombre
-            data.errores.insertar("el vector o arreglo no se puede modificar, no es mutable", temp_ambito, acceso[0].lineno, acceso[0].lexpos, data.texto)
-
-def accesov(acceso, arreglo, dato, data):
-    vacio = []
-    op = Operacion()
-    if len(acceso) >1:
-        datito = op.ejecutar(acceso[0], data)
-        temp1 = arreglo[datito.valor]
-        for i in range(len(arreglo)):
-            if i == datito.valor:
-                temp2 = accesov(acceso[1:], temp1, dato, data)
-                if temp2 == "error":
-                    vacio = "error"
-                else:
-                    vacio.append(temp2)
-            else:
-                vacio.append(arreglo[i])
-        return vacio
-    else:
-        try:
-            datito = op.ejecutar(acceso[0], data)
-            arreglo[datito.valor] = dato
-            return arreglo
-        except:
-            return "error"
 
 def vector_push(id, expresion, data):
     if isinstance(expresion, list):
@@ -792,17 +646,6 @@ def modificacion_atributoDB(id, posicion, atributo, expresion, data):
         else:
             temp_ambito = data.ambito.pila[len(data.ambito.pila)-1].nombre
             data.errores.insertar("el vector o arreglo no se puede modificar, no es mutable", temp_ambito, id.lineno, id.lexpos, data.texto)
-
-#funciones para verificaciones
-def tipoDato(dato):
-    if dato == "i64": return "ENTERO"
-    if dato == "f64": return "DECIMAL"
-    if dato == "bool": return "BOOL"
-    if dato == "char": return "CARACTER"
-    if (dato == "String" or dato == "&str"): return "CADENA"
-    else: return dato
-
-
 
 # aqui empezare con las instrucciones globales (funciones, structs, modulos)
 

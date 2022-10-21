@@ -44,7 +44,7 @@ class Operacion():
                 elif expresion.expresion.value.upper() == "FALSE":
                     resultado.valor = False
             elif expresion.expresion.type == "ID":
-                simbol = data.ts.obtener(expresion.expresion.value, data.pStack, data.pHeap)
+                simbol = data.ts.obtener(expresion.expresion.value, 0, len(data.ts.simbolos))
                 if simbol == 0:
                     resultado.tipo = "error"
                     resultado.valor = "error"
@@ -72,7 +72,7 @@ class Operacion():
         
         elif isinstance(expresion, ExpresionAcceso): 
             resultado = Retorno()
-            simbol = data.ts.obtener(expresion.id.value)
+            simbol = data.ts.obtener(expresion.id.value, 0, len(data.ts.simbolos))
             if simbol == 0:
                     resultado.tipo = "error"
                     resultado.valor = "error"
@@ -80,20 +80,12 @@ class Operacion():
                     data.errores.insertar("el id al que se intenta accesar no existe", temp_ambito, expresion.id.lineno, expresion.id.lexpos, data.texto)
             else:
                 if simbol.tipoSimbolo == "Arreglo" or simbol.tipoSimbolo == "Vector":
-                    try:
-                        temp1 = simbol.valor
-                        for i in expresion.acceso:
-                            dato = self.ejecutar(i, data)
-                            if dato.tipo == "ENTERO":
-                                temp1 = temp1[dato.valor]
-                            
-                        resultado.valor = temp1
+                    if len(simbol.dimensiones) > len(expresion.acceso):
+                        resultado.tipoS = "Arreglo"
                         resultado.tipo = simbol.tipoDato
-                    except:
-                        resultado.tipo = "error"
-                        resultado.valor = "error"
-                        temp_ambito = data.ts.nombre_entorno()
-                        data.errores.insertar("No es posible acceder a esta posicion del vector", temp_ambito, expresion.id.lineno, expresion.id.lexpos, data.texto)
+                    else:
+                        resultado.tipo = simbol.tipoDato
+                    
                 else:
                     resultado.tipo = "error"
                     resultado.valor = "error"
@@ -103,7 +95,7 @@ class Operacion():
 
         elif isinstance(expresion, ExpresionRemove):
             resultado = Retorno()
-            simbol = data.ts.obtener(expresion.id.value)
+            simbol = data.ts.obtener(expresion.id.value, 0, len(data.ts.simbolos))
             if simbol == 0:
                 resultado.tipo = "error"
                 resultado.valor = "error"
@@ -126,7 +118,7 @@ class Operacion():
 
         elif isinstance(expresion, ExpresionContains):
             resultado = Retorno()
-            simbol = data.ts.obtener(expresion.id.value)
+            simbol = data.ts.obtener(expresion.id.value, 0, len(data.ts.simbolos))
             if simbol == 0:
                 resultado.tipo = "error"
                 resultado.valor = "error"
@@ -176,7 +168,7 @@ class Operacion():
             resultado = Retorno()
             resultado.linea = expresion.id.lineno
             resultado.columna = expresion.id.lexpos
-            simbol = data.ts.obtener(expresion.id.value)
+            simbol = data.ts.obtener(expresion.id.value, 0, len(data.ts.simbolos))
             if simbol == 0:
                 temp_ambito = data.ts.nombre_entorno()
                 data.errores.insertar("el id al que se intenta accesar no existe", temp_ambito, expresion.id.lineno, expresion.id.lexpos, data.texto)
@@ -225,7 +217,7 @@ class Operacion():
 
         elif isinstance(expresion, ExpresionCapacity):
             resultado = Retorno()
-            simbol = data.ts.obtener(expresion.id.value)
+            simbol = data.ts.obtener(expresion.id.value, 0, len(data.ts.simbolos))
             if simbol == 0:
                 resultado.tipo = "error"
                 resultado.valor = "error"
@@ -247,7 +239,7 @@ class Operacion():
 
         elif isinstance(expresion, ExpresionLen):
             resultado = Retorno()
-            simbol = data.ts.obtener(expresion.id.value)
+            simbol = data.ts.obtener(expresion.id.value, 0, len(data.ts.simbolos))
             if simbol == 0:
                 resultado.tipo = "error"
                 resultado.valor = "error"
@@ -303,7 +295,7 @@ class Operacion():
             buscar = 0
             temp = data.modulos
             for mod in listamod:
-                buscar = temp.obtener(mod.value)
+                buscar = temp.obtener(mod.value, 0, len(data.ts.simbolos))
                 if buscar != 0:
                     temp = buscar.mod
             resultado = expresion_llamadaDB(id, expresion.parametros, buscar.fn, data)
@@ -320,7 +312,7 @@ class Operacion():
 
     def ejecutarStruct(self, nombre, campos, data):
         resultado = Retorno()
-        buscar = data.structs.obtener(nombre.value)
+        buscar = data.structs.obtener(nombre.value, 0, len(data.ts.simbolos))
         if len(buscar.campos) == len(campos):
             atributos = {} 
             hubo_error = False
@@ -379,7 +371,7 @@ class Operacion():
         
 def expresion_acceso_atributo(id, posicion, atributo, data):
     resultado = Retorno()
-    simbol = data.ts.obtener(id.value)
+    simbol = data.ts.obtener(id.value, 0, len(data.ts.simbolos))
     if simbol == 0:
             resultado.tipo = "error"
             resultado.valor = "error"
@@ -446,7 +438,7 @@ def devolver_struct(valor, atributo):
 def expresion_llamada(id, parametros, data):
     resultado = Retorno()
     resultado.linea = id.lineno
-    buscar = data.funciones.obtener(id.value)
+    buscar = data.funciones.obtener(id.value, 0, len(data.ts.simbolos))
     if buscar == 0:
         temp_ambito = data.ts.nombre_entorno()
         data.errores.insertar("la funcion no existe existe", temp_ambito, id.lineno, id.lexpos, data.texto)
@@ -521,7 +513,7 @@ def expresion_llamada(id, parametros, data):
 def expresion_llamadaDB(id, parametros, lfunciones, data):
     resultado = Retorno()
     resultado.linea = id.lineno
-    buscar = lfunciones.obtener(id.value)
+    buscar = lfunciones.obtener(id.value, 0, len(data.ts.simbolos))
     if buscar == 0:
         temp_ambito = data.ts.nombre_entorno()
         data.errores.insertar("la funcion no existe existe", temp_ambito, id.lineno, id.lexpos, data.texto)

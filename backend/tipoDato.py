@@ -15,6 +15,14 @@ class Retorno():
         self.tipoS = "Variable"
         self.capacidad = None
 
+class ParaLex():
+    def __init__(self):
+        self.type = None
+        self.value = None
+        self.lineno = 1
+        self.lexpos = 0
+
+
 class Texp():
     def __init__(self, direccion, codigo, linea, columna):
         self.direccion = direccion
@@ -22,8 +30,10 @@ class Texp():
         self.linea = linea
         self.columna = columna
         self.tipo = ""
+        self.tipoS = "Variable"
         self.etiquetaV = None
         self.etiquetaF = None
+        self.dimension = None
     
     def obtenerV(self):
         tempV = self.etiquetaV.split(",")

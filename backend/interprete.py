@@ -31,7 +31,7 @@ def procesar_instrucciones(instrucciones, data) :
         
         #elif isinstance(inst, DeclaracionVector): procesar_declaracion_vector(inst.nombre, inst.tipo, inst.valor, inst.capacidad, inst.mutable, data)
         #elif isinstance(inst, DeclaracionVector2): procesar_declaracion_vector2(inst.nombre, inst.tipo, inst.mutable, inst.capacidad, data)
-        #elif isinstance(inst, ModificarArray): procesar_modificar_arreglo(inst.acceso, inst.expresion, data)
+        elif isinstance(inst, ModificarArray): procesar_modificar_arreglo(inst.acceso, inst.expresion, data)
         #elif isinstance(inst, Vinsert): vector_insert(inst.id, inst.posicion, inst.expresion, data)
         #elif isinstance(inst, Vpush): vector_push(inst.id, inst.expresion, data)
         #elif isinstance(inst, Vremove): vector_remove(inst.id, inst.posicion, data)
