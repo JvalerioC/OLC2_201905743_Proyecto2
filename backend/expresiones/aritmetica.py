@@ -218,8 +218,93 @@ def t_aritmetica(r1, r2, op, fila, columna, data):
         else:
             data.errores.insertar("No es posible hacer operacion aritmetica los tipos de datos no son iguales", "", fila, columna, data.texto)
             te = "error"
+    elif r1.tipo == "CADENA" and r2.tipo == "CADENA":
+        if r1.direccion == None and r2.direccion != None:
+            etiqueta1 = data.obtenerEtiqueta()
+            etiqueta2 = data.obtenerEtiqueta()
+            te.codigo += "\n"
+            temporal1 = data.obtenerTemporal()
+            te.codigo += temporal1 + " = "+str(len(r1.valor))+";"
+            temporal2 = data.obtenerTemporal()
+            te.codigo += r2.codigo
+            te.codigo += "\n"
+            te.codigo += temporal2 +" = heap[(int)"+r2.direccion+"];"
+            temporal3 = data.obtenerTemporal()
+            te.codigo += "\n"
+            te.codigo += temporal3+ " = "+temporal1+" + "+temporal2+";"
+            te.direccion = temporal3
+            te.codigo += "\n"
+            temporal4 = data.obtenerTemporal()
+            temporal5 = data.obtenerTemporal()
+            te.cadder = ""
+            
+            te.cadder += "\n"
+            te.cadder += temporal4 +" = 0;"
+            te.cadder += "\n"
+            te.cadder += etiqueta1+":\n"
+            te.cadder += "if("+temporal2+"=="+temporal4+") goto "+etiqueta2+";"
+            te.cadder += "\n"
+            te.cadder += r2.direccion +" = "+ r2.direccion +" + 1;"
+            te.cadder += "\n"
+            te.cadder += temporal5 +"= heap[(int)"+r2.direccion+"];"
+            te.cadder += "\n"
+            te.cadder += "heap[(int)H] = "+temporal5+";"
+            te.cadder += "\n"
+            te.cadder += "H = H + 1;"
+            te.cadder += "\n"
+            te.cadder += temporal4+" = "+temporal4+" + 1;\n"
+            te.cadder += "goto "+etiqueta1+";\n"
+            te.cadder += etiqueta2+":"
+            te.valor = r1.valor
+            te.tipo = "CADENA"
+
+        elif r1.direccion != None and r2.direccion == None:
+            etiqueta1 = data.obtenerEtiqueta()
+            etiqueta2 = data.obtenerEtiqueta()
+            te.codigo += "\n"
+            temporal1 = data.obtenerTemporal()
+            te.codigo += temporal1 + " = "+str(len(r2.valor))+";"
+            temporal2 = data.obtenerTemporal()
+            te.codigo += r1.codigo
+            te.codigo += "\n"
+            te.codigo += temporal2 +" = heap[(int)"+r1.direccion+"];"
+            temporal3 = data.obtenerTemporal()
+            te.codigo += "\n"
+            te.codigo += temporal3+ " = "+temporal1+" + "+temporal2+";"
+            te.direccion = temporal3
+            te.codigo += "\n"
+            temporal4 = data.obtenerTemporal()
+            temporal5 = data.obtenerTemporal()
+            te.cadizq = ""
+            
+            te.cadizq += "\n"
+            te.cadizq += temporal4 +" = 0;"
+            te.cadizq += "\n"
+            te.cadizq += etiqueta1+":\n"
+            te.cadizq += "if("+temporal2+"=="+temporal4+") goto "+etiqueta2+";"
+            te.cadizq += "\n"
+            te.cadizq += r1.direccion +" = "+ r1.direccion +" + 1;"
+            te.cadizq += "\n"
+            te.cadizq += temporal5 +"= heap[(int)"+r1.direccion+"];"
+            te.cadizq += "\n"
+            te.cadizq += "heap[(int)H] = "+temporal5+";"
+            te.cadizq += "\n"
+            te.cadizq += "H = H + 1;"
+            te.cadizq += "\n"
+            te.cadizq += temporal4+" = "+temporal4+" + 1;\n"
+            te.cadizq += "goto "+etiqueta1+";\n"
+            te.cadizq += etiqueta2+":"
+            te.valor = r2.valor
+            te.tipo = "CADENA"
+
+        elif r1.direccion == None and r2.direccion == None:
+            te.valor = r1.valor + r2.valor
+            temporal1 = data.obtenerTemporal()
+            te.codigo = "\n"+temporal1+" = "+str(len(te.valor))+";"
+            te.direccion = temporal1
+            te.tipo = "CADENA"
     else:
-        data.errores.insertar("No es posible hacer operacion aritmetica con ID, CHAR, BOOL", "", fila, columna, data.texto)
+        data.errores.insertar("No es posible hacer operacion aritmetica con CHAR, BOOL", "", fila, columna, data.texto)
         #print("no es posible hacer operacion")
         te = "error"
 

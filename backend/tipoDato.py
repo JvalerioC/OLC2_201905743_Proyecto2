@@ -34,6 +34,9 @@ class Texp():
         self.etiquetaV = None
         self.etiquetaF = None
         self.dimension = None
+        self.valor = None
+        self.cadizq = None
+        self.cadder = None
     
     def obtenerV(self):
         tempV = self.etiquetaV.split(",")

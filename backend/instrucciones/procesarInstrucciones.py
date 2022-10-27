@@ -71,13 +71,17 @@ def procesar_declaracion1_ts(id, expresion, data):
     columna = find_column(data.texto, id.lexpos)
     #id.value, dato.valor, dato.tipoS, dato.tipo, temp_ambito, False, id.lineno, id.lexpos, data.texto
     simbolo_temporal = Simbolo(id.value, dato.tipo, dato.tipoS, 1, data.ts.nombre_entorno(), False, id.lineno, columna, data.pStack, -1)
+    simbolo_temporal.valor = dato.valor
     data.ts.ingresar(simbolo_temporal)
     data.pStack += 1
 
 def procesar_declaracion2_ts(id, tipo, expresion, data):
+    op = Operacion()
+    dato = op.ejecutar(expresion, data)
     tipo_dato = tipoDato(tipo.value)
     columna = find_column(data.texto, id.lexpos)
     simbolo_temporal = Simbolo(id.value, tipo_dato, "Variable", 1, data.ts.nombre_entorno(), False, id.lineno, columna, data.pStack, -1)
+    simbolo_temporal.valor = dato.valor
     data.ts.ingresar(simbolo_temporal)
     data.pStack += 1
 
@@ -86,13 +90,18 @@ def procesar_declaracionM1_ts(id, expresion, data):
     dato = op.ejecutar(expresion, data)
     columna = find_column(data.texto, id.lexpos)
     simbolo_temporal = Simbolo(id.value, dato.tipo, dato.tipoS, 1, data.ts.nombre_entorno(), True, id.lineno, columna, data.pStack, -1)
+    simbolo_temporal.valor = dato.valor
     data.ts.ingresar(simbolo_temporal)
     data.pStack += 1
 
+
 def procesar_declaracionM2_ts(id, tipo, expresion, data):
+    op = Operacion()
+    dato = op.ejecutar(expresion, data)
     tipo_dato = tipoDato(tipo.value)
     columna = find_column(data.texto, id.lexpos)
     simbolo_temporal = Simbolo(id.value, tipo_dato, "Variable", 1, data.ts.nombre_entorno(), True, id.lineno, columna, data.pStack, -1)
+    simbolo_temporal.valor = dato.valor
     data.ts.ingresar(simbolo_temporal)
     data.pStack += 1
 

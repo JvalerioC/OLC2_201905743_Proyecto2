@@ -223,8 +223,6 @@ def procesar_imprimirV(cadena, expresion, data):
     else:
         data.errores.insertar("la cadena no incluye la opcion de imprimir arreglo, o la expresion no es de tipo CADENA", "", dato.linea, dato.columna, data.texto)
 
-
-
 def procesar_declaracion1(id, expresion, data):
     op = Operacion()
     dato = op.ejecutar(expresion, data)
@@ -447,7 +445,50 @@ def procesar_asignacion(id, expresion, data):
                 dato = op.ejecutar(expresion, data)
                 if(dato.tipo == simbol.tipoDato):
                     if dato.tipo == "CADENA":
-                        print()
+                        puntero = simbol.posicionStack
+                        tr = TraductorExp()
+                        traduccion = tr.traducir_expresion(expresion, data)
+                        cadena_temporal = traduccion.codigo
+                        
+                        temporal = data.obtenerTemporal()
+                        cadena_temporal += "\n"
+                        cadena_temporal += temporal+ " = P + "+str(puntero)+";"
+                        cadena_temporal += "\n"
+                        cadena_temporal += "stack[(int)"+temporal+"] = H;"
+                        cadena_temporal += "\n"
+                        cadena_temporal += "heap[(int)H] = "+ traduccion.direccion+";"
+                        cadena_temporal += "\n"
+                        cadena_temporal += "H = H + 1;"
+
+                        if traduccion.cadizq == None and traduccion.cadder != None:
+                            
+                            for caracter in traduccion.valor:
+                                ascii_char = str(ord(caracter))
+                                cadena_temporal += "\n"
+                                cadena_temporal += "heap[(int)H] = "+ ascii_char+";"
+                                cadena_temporal += "\n"
+                                cadena_temporal += "H = H + 1;"
+                            cadena_temporal += traduccion.cadder
+                        
+                        elif traduccion.cadder == None and traduccion.cadizq != None:
+                            cadena_temporal += traduccion.cadizq
+                            for caracter in traduccion.valor:
+                                ascii_char = str(ord(caracter))
+                                cadena_temporal += "\n"
+                                cadena_temporal += "heap[(int)H] = "+ ascii_char+";"
+                                cadena_temporal += "\n"
+                                cadena_temporal += "H = H + 1;"
+                                
+                        if traduccion.cadder == None and traduccion.cadizq == None:
+                            for caracter in traduccion.valor:
+                                ascii_char = str(ord(caracter))
+                                cadena_temporal += "\n"
+                                cadena_temporal += "heap[(int)H] = "+ ascii_char+";"
+                                cadena_temporal += "\n"
+                                cadena_temporal += "H = H + 1;"
+                        
+                        data.consola.concatenar(cadena_temporal)
+                                                
                     else:
                         puntero = simbol.posicionStack
                         tr = TraductorExp()
@@ -549,73 +590,49 @@ def procesar_continue(data):
     else:
         data.errores.insertar("la instruccion continue no esta dentro de un ciclo", "", 0, 0, data.texto)
     
-'''def procesar_for(variable, arreglo, inicio, fin, instrucciones, data):
-    
+def procesar_for(variable, arreglo, inicio, fin, instrucciones, data):
+    cadena_temporal = ""
     arreglo_temporal = 0
     #aqui manejo el arreglo para el for
     if arreglo == 0:
-        temp_value = []
-        op = Operacion()
-        principio = op.ejecutar(inicio, data)
+        op = TraductorExp()
+        principio = op.traducir_expresion(inicio, data)
+        cadena_temporal += principio.codigo
+        if principio.direccion[0] != "t":
+            temporal = data.obtenerTemporal()
+            cadena_temporal += "\n"
+            cadena_temporal += temporal+" = "+principio.direccion+";"
+            principio.direccion = temporal
         final = 0
         if isinstance(fin, ExpresionInicial) or isinstance(fin, ExpresionAritmetica):
-            final1 = op.ejecutar(fin, data)
-            final = final1.valor
+            final1 = op.traducir_expresion(fin, data)
+            cadena_temporal += final1.codigo
+            if final1.direccion[0] != "t":
+                temporal = data.obtenerTemporal()
+                cadena_temporal += "\n"
+                cadena_temporal += temporal+" = "+final1.direccion+";"
+                final1.direccion = temporal
+            final = final1
         else:
-            simbol = data.ambito.obtenerSimbolo(fin.value, data.ambito.longitud()-1)
-            final = len(simbol.valor)
+            simbol = data.ts.obtener(fin.value, data.pStack, data.pHeap)
+            temporal = data.obtenerTemporal()
+            final1 = Texp("", "", simbol.linea, simbol.columna)
+            final1.codigo = "\n"
+            final.codigo += temporal+" = P + "+str(simbol.punteroStack)+";"
+            final.codigo += "\n"
+            temporal1 = data.obtenerTemporal()
+            final1.codigo += temporal1+" = stack[(int)"+temporal+"];"
+            final.direccion = temporal1
+            final1.tipo = simbol.tipoDato
+            final1.valor = simbol.valor
+            final = final1
+        cadena_temporal += final.codigo
         if principio.tipo == "ENTERO" and isinstance(final, int) :
-            for i in range(principio.valor, final, 1):
-                temp_value.append(i)
-            arreglo_temporal = temp_value
+            print("se cumplen los parametros")
         else:
-            temp_ambito = data.ambito.pila[len(data.ambito.pila)-1].nombre
-            data.errores.insertar("no se puede recorrer el rango no es numerico ( entero) ", temp_ambito, variable.lineno, variable.lexpos, data.texto)
+            print(cadena_temporal)
     else:
-        if isinstance(arreglo, list):
-            temp_value = []
-            op = Operacion()
-            for dato1  in arreglo:
-                temp_dato = op.ejecutar(dato1, data)
-                temp_value.append(temp_dato.valor)
-            arreglo_temporal = temp_value
-        elif isinstance(arreglo, ExpresionInicial):
-            op = Operacion()
-            temp_dato = op.ejecutar(arreglo, data)
-            if temp_dato.tipo == "CADENA":
-                arreglo_temporal = temp_dato.valor
-            else:
-                temp_ambito = data.ambito.pila[len(data.ambito.pila)-1].nombre
-                data.errores.insertar("no hay cadena para convertir a lista de caracteres", temp_ambito, variable.lineno, variable.lexpos, data.texto)
-        elif arreglo.type == "ID":
-            simbol = data.ambito.obtenerSimbolo(arreglo.value, data.ambito.longitud()-1)
-            if isinstance(simbol.valor, list):
-                arreglo_temporal = simbol.valor
-            elif simbol.tipoDato == "CADENA":
-                arreglo_temporal = simbol.valor
-            else:
-                temp_ambito = data.ambito.pila[len(data.ambito.pila)-1].nombre
-                data.errores.insertar("la expresion no es un arreglo", temp_ambito, arreglo.lineno, arreglo.lexpos, data.texto)
-    
-    if arreglo_temporal == 0:
-        temp_ambito = data.ambito.pila[len(data.ambito.pila)-1].nombre
-        data.errores.insertar("no hay arreglo para recorrer", temp_ambito, variable.lineno, variable.lexpos, data.texto)
-    else:
-        from interprete import procesar_instrucciones
-        for dato in arreglo_temporal:
-            new_ts = TablaSimbolos()
-            new_ts.nombre = "For"
-            new_ts.isFor = True
-            data.ambito.ingresar(new_ts)
-            temp_ambito = data.ambito.pila[len(data.ambito.pila)-1].nombre
-            data.ambito.ingresarSimbolo(variable.value, dato, "Variable", tipoDatoE(dato), temp_ambito, False, variable.lineno, variable.lexpos, data.texto)
-            procesar_instrucciones(instrucciones, data)
-            if(data.ambito.pila[data.ambito.longitud()-1].isBreak == True):
-                data.ambito.eliminar()
-                break
-            if(data.ambito.pila[data.ambito.longitud()-1].isContinue == True):
-                data.ambito.pila[data.ambito.longitud()-1].isContinue = False
-            data.ambito.eliminar()'''
+        print("no hay inicio ni fin sino arreglo")
 
 def procesar_declaracion_arreglo(nombre, tamanio, expresiones, data):
     temp = data.ts.obtener(nombre.value, data.pStack, data.pHeap)

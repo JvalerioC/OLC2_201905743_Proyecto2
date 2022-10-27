@@ -60,10 +60,13 @@ class TraductorExp():
                     te.codigo = te.codigo + temporal+" = stack[(int)"+ data.obtenerTemporalAnterior()+"];"
                     te.direccion = temporal
                     te.tipo = simbol.tipoDato
+                    te.valor = simbol.valor
                                
             elif expresion.expresion.type == "CADENA":
-                print("si deberia haber expresion cadena")
-                return
+                te =  Texp(None, None,expresion.expresion.lineno,0)
+                te.tipo = "CADENA"
+                te.valor = expresion.expresion.value
+                return te
                 
             elif expresion.expresion.type == "CARACTER":
                 ascii_char = str(ord(expresion.expresion.value))
@@ -160,28 +163,51 @@ class TraductorExp():
                 te = "error"
                 print("hay que hacer la comprobacion")
             return te
-        '''
-        elif isinstance(expresion, ExpresionRaiz):
-            resultado = Retorno()
+        
+        elif isinstance(expresion, ExpresionCasteo):
+            
             dato = self.traducir_expresion(expresion.expresion, data)
-            resultado.linea = dato.linea
-            resultado.columna = dato.columna
+            te = Texp("", "", dato.linea, dato.columna)
+            if dato.tipo == "ENTERO" or dato.tipo == "DECIMAL":
+                te.codigo = dato.codigo
+                if expresion.tipo.type == "FLOAT":
+                    te.direccion = dato.direccion
+                    te.tipo = "DECIMAL"
+                    te.valor = dato.valor
+                elif expresion.tipo.type == "INT":
+                    te.direccion = dato.direccion
+                    te.valor = dato.valor
+                    te.tipo = "ENTERO"
+                else:
+                    te = "error"
+                    data.errores.insertar("el valor no se puede castear a un tipo que no sea decimal o entero", "", expresion.tipo.lineno, expresion.tipo.lexpos, data.texto)
+            else:
+                te = "error"
+                data.errores.insertar("el valor a castear no es entero o decimal", "", expresion.tipo.lineno, expresion.tipo.lexpos, data.texto)
+            return te
+        
+        
+        elif isinstance(expresion, ExpresionRaiz):
+            dato = self.traducir_expresion(expresion.expresion, data)
+            te = Texp("", "", dato.linea, dato.columna)
             if dato.tipo == 0 or dato.tipo == "error":
-                temp_ambito = data.ts.nombre_entorno()
-                data.errores.insertar("el id al que se intenta accesar no existe", temp_ambito, dato.linea, dato.columna, data.texto)
-                resultado.tipo = "error"
-                resultado.valor = "error"
+                data.errores.insertar("el id al que se intenta accesar no existe", "", dato.linea, dato.columna, data.texto)
+                te = "error"
             else: 
                 if dato.tipo == "ENTERO" or dato.tipo == "DECIMAL":
-                    resultado.tipo = "DECIMAL"
-                    resultado.valor = pow(dato.valor, 0.5)
+                    te.tipo = "DECIMAL"
+                    te.codigo = dato.codigo
+                    temporal = data.obtenerTemporal()
+                    te.valor = pow(dato.valor, 0.5)
+                    te.codigo += "\n"+temporal+" = "+str(te.valor)+";"
+                    te.direccion = temporal
+                    
                 else:
-                    temp_ambito = data.ts.nombre_entorno()
-                    data.errores.insertar("no es posible calcular la raiz, la expresion no es numerica", temp_ambito, dato.linea, dato.columna, data.texto)
-                    resultado.tipo = "error"
-                    resultado.valor = "error"
-            return resultado
-
+                    data.errores.insertar("no es posible calcular la raiz, la expresion no es numerica", "", dato.linea, dato.columna, data.texto)
+                    te = "error"
+            return te        
+        
+        '''
         elif isinstance(expresion, ExpresionClone):
             resultado = Retorno()
             resultado.linea = expresion.id.lineno
@@ -196,6 +222,10 @@ class TraductorExp():
                 resultado.tipo = simbol.tipoDato
                 resultado.valor = simbol.valor
             return resultado
+        
+        
+
+        
 
         elif isinstance(expresion, ExpresionToString):
             resultado = Retorno()
@@ -321,29 +351,7 @@ class TraductorExp():
             resultado = expresion_llamada(expresion.id, expresion.parametros, data)
             return resultado
         
-        elif isinstance(expresion, ExpresionCasteo):
-            resultado = Retorno()
-            dato = self.traducir_expresion(expresion.expresion, data)
-            resultado.linea = dato.linea
-            resultado.columna = dato.columna
-            if dato.tipo == "ENTERO" or dato.tipo == "DECIMAL":
-                if expresion.tipo.type == "FLOAT":
-                    resultado.valor = float(dato.valor)
-                    resultado.tipo = "DECIMAL"
-                elif expresion.tipo.type == "INT":
-                    resultado.valor = int(dato.valor)
-                    resultado.tipo = "ENTERO"
-                else:
-                    resultado.tipo = "error"
-                    resultado.valor = "error"
-                    temp_ambito = data.ts.nombre_entorno()
-                    data.errores.insertar("el valor no se puede castear a un tipo que no sea decimal o entero", temp_ambito, expresion.tipo.lineno, expresion.tipo.lexpos, data.texto)
-            else:
-                resultado.tipo = "error"
-                resultado.valor = "error"
-                temp_ambito = data.ts.nombre_entorno()
-                data.errores.insertar("el valor a castear no es entero o decimal", temp_ambito, expresion.tipo.lineno, expresion.tipo.lexpos, data.texto)
-            return resultado
+        
 
         elif isinstance(expresion, ExpresionAccesoStruct):
             buscar = self.traducir_expresion(ExpresionInicial(expresion.id), data)

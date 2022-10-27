@@ -18,7 +18,7 @@ def procesar_instrucciones(instrucciones, data) :
         elif isinstance(inst, If): procesar_if(inst.condicion, inst.instrucciones, data, None)
         elif isinstance(inst, If_Else): procesar_if_else(inst.condicion, inst.instrucciones, inst.ielse, data, None)
         elif isinstance(inst, While): procesar_while(inst.condicion, inst.instrucciones, data)
-        #elif isinstance(inst, For): procesar_for(inst.variable, inst.arreglo, inst.inicio, inst.fin, inst.instrucciones, data)
+        elif isinstance(inst, For): procesar_for(inst.variable, inst.arreglo, inst.inicio, inst.fin, inst.instrucciones, data)
         elif isinstance(inst, Break): procesar_break(inst.expresion, data)
         elif isinstance(inst, Continue): procesar_continue(data)
         #elif isinstance(inst, Loop) : procesar_loop(inst.instrucciones, data)
